@@ -2,8 +2,13 @@
 
 ## Running CouchDB
 
+Build the docker image, from couchdb directory run:
 ```
 sudo docker build -t dragnet/couchdb .
+```
+
+Run the container for that image:
+```
 sudo docker run -d -p 5984:5984 --name dragnet_couchdb dragnet/couchdb
 ```
 
