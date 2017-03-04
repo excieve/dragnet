@@ -1,0 +1,43 @@
+function(doc) {
+    if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType)
+        return;
+    if (doc.step_0.declarationType != '1')
+        return;
+
+    var declarantSalarySum = 0.0,
+        familySalarySum = 0.0,
+        declarantTotalSum = 0.0,
+        familyTotalSum = 0.0;
+    if (doc.step_11) {
+        for (var key in doc.step_11) {
+            const incomeDoc = doc.step_11[key];
+            if (typeof(incomeDoc) != 'object')
+                continue;
+            const size = parseFloat(incomeDoc.sizeIncome.replace(',', '.')) || 0.0,
+                  isSalary = (incomeDoc.objectType == 'Заробітна плата отримана за основним місцем роботи');
+
+            if (incomeDoc.person == '1') {
+                if (isSalary)
+                    declarantSalarySum += size;
+                declarantTotalSum += size;
+            } else {
+                if (isSalary)
+                    familySalarySum += size;
+                familyTotalSum += size;
+            }
+        };
+    }
+
+    const result = {
+        FIO: doc.step_1.lastname + ' ' + doc.step_1.firstname + ' ' + doc.step_1.middlename,
+        workPost: doc.step_1.workPost,
+        workPlace: doc.step_1.workPlace,
+        decl_year: doc.step_0.declarationYear0,
+        salary_declarant_sum: declarantSalarySum,
+        salary_family_sum: familySalarySum,
+        total_income_declarant: declarantTotalSum,
+        total_income_family: familyTotalSum
+    };
+
+    emit(doc._id, result);
+}

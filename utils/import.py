@@ -20,7 +20,7 @@ def import_batch(docs, db_config):
     for d in docs:
         if d:
             doc_object = json.loads(d)
-            source = doc_object['_source']
+            source = doc_object['_source']['nacp_orig']
             source.update({'_id': doc_object['_id']})
             docs_objects.append(source)
 
@@ -50,11 +50,11 @@ def import_all(docs_file, db_config, concurrency, chunks_per_process):
                 total_docs += num_docs
                 total_time += time_spent
                 logger.info(
-                    'Batch #{} finished importing {} documents in {:.2f}s with speed {:.2f}docs/s'
+                    'Batch #{} finished importing {} documents in {:.2f}s with the speed of {:.2f}docs/s'
                     .format(i, num_docs, time_spent, float(num_docs) / float(time_spent))
                 )
     logger.info(
-        'Total imported {} documents in {:.2f}s with speed {:.2f}docs/s'
+        'Total imported {} documents in {:.2f}s with the speed of {:.2f}docs/s'
         .format(total_docs, total_time, float(total_docs) / float(total_time))
     )
 

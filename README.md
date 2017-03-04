@@ -27,3 +27,17 @@ With elasticdump-like output file:
 python3 utils/import.py path/to/elasticdump.json -u username -p password -e http://endpoint:port -d declarations -c 8 -C 1500
 ```
 This will run import in 8 processes of 1500 chunks max per each concurrently against the "declarations" CouchDB database at specified endpoint with corresponding credentials with the dump as a first argument. Additionally `-P` option may be used to purge the DB prior to import.
+
+
+## Adding views with map/reduce functions
+
+We currently support JavaScript and CoffeeScript (provided compiler is installed on the system) as languages for MapReduce functions.
+Reference functions (currently only `map` stage) are available in `data/reference` directory in this repository.
+
+In order to add a function (and create a design document for it) please use the following helper script:
+```
+python3 utils/addview.py data/reference/income_map_function.coffee -u username -p password -d declarations -D reference -v read_income -l coffeescript
+```
+This will create a "reference" design document on the "declarations" DB with a "read_income" view, containing a map function provided in `data/reference/income_map_function.coffee` file, compiling it from CoffeeScript on the fly.
+
+TODO: Create a Dockerfile for utils.
