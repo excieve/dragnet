@@ -2,6 +2,7 @@ import sys
 import argparse
 import logging
 import subprocess
+import time
 
 from cloudant import couchdb
 
@@ -39,23 +40,79 @@ def load_source(mapfile_name, reducefile_name):
 
 
 def process_source(map_function_source, reduce_function_source, language):
+    new_language = language
     if language == 'coffeescript':
         logger.info('Compiling map function from CoffeeScript...')
         map_function_source = coffeescript(map_function_source)
+        if not map_function_source:
+            sys.exit(1)
         logger.info('Done.')
         if reduce_function_source:
             logger.info('Compiling reduce function from CoffeeScript...')
             reduce_function_source = coffeescript(reduce_function_source)
+            if not reduce_function_source:
+                sys.exit(1)
             logger.info('Done.')
-    return map_function_source, reduce_function_source
+        new_language = 'javascript'
+    return map_function_source, reduce_function_source, new_language
 
 
-def add_function(map_function_source, reduce_function_source, db_config):
+def do_benchmark(couch, view):
+    # Call the view in order to launch the indexing process.
+    # This is fire and forget as it will most likely timeout and we're not interested in the result anyway.
+    proc = subprocess.Popen(['curl', '-s', '{}?limit=21'.format(view.url)],
+                            start_new_session=True, stdout=subprocess.DEVNULL)
+    logger.info('Initiated the view query as pid {}.'.format(proc.pid))
+    time.sleep(2)
+
+    # Query CouchDB active tasks for the view's design doc while there's nothing left, then calculate average
+    # Taken and adapted from https://gist.github.com/kevinjqiu/dd461b36a6f1d6d755d7a317d8f98b75#file-cps-py
+    all_changes_per_sec = []
+    all_changes_per_sec_one_task = []
+    total_time = 0
+    logger.info('Querying active tasks for the design document.')
+    while True:
+        response = couch.r_session.get('{}/_active_tasks'.format(couch.server_url))
+        logger.debug(response.text)
+        tasks = [
+            task for task in response.json()
+            if task.get('design_document') == view.design_doc['_id']
+        ]
+        if len(tasks) == 0:
+            break
+
+        task = tasks[0]
+        started_on, updated_on = task['started_on'], task['updated_on']
+        if started_on == updated_on:
+            continue
+        total_time = updated_on - started_on  # This will typically end up to be the last task's time, thus longest
+
+        changes_per_sec = [float(t['changes_done']) / float(t['updated_on'] - t['started_on']) for t in tasks]
+        all_changes_per_sec.append(sum(changes_per_sec))
+        all_changes_per_sec_one_task.append(changes_per_sec[0])
+        logger.info('c/s = {:.2f} ({} tasks), {:.2f} (one task); changes = {}'
+                    .format(
+                        sum(changes_per_sec), len(tasks),
+                        changes_per_sec[0],
+                        sum([t['changes_done'] for t in tasks])
+                    ))
+        time.sleep(1)
+
+    if all_changes_per_sec:
+        average_all = sum(all_changes_per_sec) / len(all_changes_per_sec)
+        average_all_one_task = sum(all_changes_per_sec_one_task) / len(all_changes_per_sec_one_task)
+        logger.info('average = {:.2f}c/s (all_tasks) {:.2f}c/s (one task)'.format(average_all, average_all_one_task))
+        logger.info('total time = {}s'.format(total_time))
+    else:
+        logger.info('No active tasks (not indexing).')
+
+
+def add_function(map_function_source, reduce_function_source, db_config, language, benchmark):
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         design_doc = db.get_design_document(db_config['design_doc'])
         logger.info('Working with design document {} from DB {}.'.format(design_doc['_id'], db.database_name))
-        design_doc['language'] = 'javascript'  # For now ensuring we're always dealing with JS in the end
+        design_doc['language'] = language
         view = design_doc.get_view(db_config['view'])
         if view is None:
             logger.info('View {} does not exist, creating a new one.'.format(db_config['view']))
@@ -63,9 +120,13 @@ def add_function(map_function_source, reduce_function_source, db_config):
         else:
             logger.info('View {} exists, updating.'.format(view.view_name))
             design_doc.update_view(db_config['view'], map_function_source, reduce_function_source)
+        logger.debug(design_doc.json())
         design_doc.save()
         logger.info('Design doc successfully saved.')
         logger.debug(design_doc.info())
+        if benchmark:
+            view = design_doc.get_view(db_config['view'])
+            do_benchmark(couch, view)
 
 
 if __name__ == '__main__':
@@ -80,8 +141,11 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--view', help='CouchDB view name')
     parser.add_argument('-l', '--language', help='Function language',
                         default='javascript',
-                        choices=['javascript', 'coffeescript'])
+                        choices=['javascript', 'coffeescript', 'chakra', 'python', 'pypy'])
     parser.add_argument('-V', '--verbose', help='Verbose logging', action='store_true', default=False)
+    parser.add_argument('-b', '--benchmark', help='Measure performance metrics after adding the view',
+                        action='store_true',
+                        default=False)
     args = parser.parse_args()
 
     if args.verbose:
@@ -97,6 +161,6 @@ if __name__ == '__main__':
     }
 
     map_function_source, reduce_function_source = load_source(args.mapfile, args.reducefile)
-    map_function_source, reduce_function_source = process_source(map_function_source,
-                                                                 reduce_function_source, args.language)
-    add_function(map_function_source, reduce_function_source, db_config)
+    map_function_source, reduce_function_source, language = process_source(map_function_source,
+                                                                           reduce_function_source, args.language)
+    add_function(map_function_source, reduce_function_source, db_config, language, args.benchmark)

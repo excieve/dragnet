@@ -40,4 +40,59 @@ python3 utils/addview.py data/reference/income_map_function.coffee -u username -
 ```
 This will create a "reference" design document on the "declarations" DB with a "read_income" view, containing a map function provided in `data/reference/income_map_function.coffee` file, compiling it from CoffeeScript on the fly.
 
+Supported `-l` (language) values are currently "javascript" (for the default couchjs/SpiderMonkey), "chakra" (for couch-chakra/ChakraCore), which supports ES6 natively and "coffeescript" (transpiles into ES5 and runs on couchjs). Benchmark docker image also allows "python", "pypy" and "erlang".
+
 TODO: Create a Dockerfile for utils.
+
+
+## Benchmarking
+
+`addview.py` script supports benchmarking mode, which initiates a view query for the added/updated view and tracks CouchDB's active indexing tasks, logging performance metrics. In order to utilise it pass `-b` argument.
+
+**Note**: Benchmarking with CouchDB is a little nuanced since it never really deletes things (unless you tell it) and therefore in some cases it might happen that only a part of shards (or even none) are going to be indexed. Please make sure you're using fresh design documents for benchmark runs, which have *never* been used before even if deleted. Alternatively compact the design docs, delete them and run views cleanup before reusing.
+
+Another point to keep in mind is having your DB volume on the host side to avoid docker storage overhead as well as avoiding the loop device as docker's storage engine.
+
+For convenience there's a Dockerfile for benchmarking various query servers in `couchdb/benchmark`, which depends on "dragnet/couchdb" image to be present.
+
+Here's some results of functions from `data/reference` run over a dataset of ≈300000 real-world documents with a nested structure,
+
+Using ES6 with `chakra` language ([couch-chakra](https://github.com/dmunch/couch-chakra) query server utilising ChakraCore JS runtime):
+
+```
+INFO:dragnet.addview:average = 1234.66c/s (all_tasks) 154.42c/s (one task)
+INFO:dragnet.addview:total time = 242s
+
+```
+
+Using the default ES5 couchjs (SpiderMonkey JS runtime under the hood):
+```
+INFO:dragnet.addview:average = 1193.69c/s (all_tasks) 148.37c/s (one task)
+INFO:dragnet.addview:total time = 247s
+
+```
+
+Using CPython (`python` language):
+```
+INFO:dragnet.addview:average = 1285.14c/s (all_tasks) 162.09c/s (one task)
+INFO:dragnet.addview:total time = 229s
+
+```
+
+Using PyPy (`pypy` language):
+```
+INFO:dragnet.addview:average = 1046.89c/s (all_tasks) 132.16c/s (one task)
+INFO:dragnet.addview:total time = 278s
+```
+
+Using JS (SpiderMonkey) transpiled from CoffeeScript (`coffeescript` language):
+```
+INFO:dragnet.addview:average = 1143.62c/s (all_tasks) 144.07c/s (one task)
+INFO:dragnet.addview:total time = 257s
+```
+
+TODO: Erlang (if I can write one properly) and jq (when there's a proper query server for it).
+
+Even though CPython turned out the fastest — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually).
+
+TODO: Write a proper article about all this.

@@ -28,7 +28,7 @@
         FIO: "#{doc.step_1.lastname} #{doc.step_1.firstname} #{doc.step_1.middlename}",
         workPost: doc.step_1.workPost,
         workPlace: doc.step_1.workPlace,
-        decl_year: doc.step_0.declarationYear0,
+        decl_year: doc.step_0.declarationYear1,
         salary_declarant_sum: declarant_salary_sum,
         salary_family_sum: family_salary_sum,
         total_income_declarant: declarant_total_sum,
