@@ -62,21 +62,18 @@ Using ES6 with `chakra` language ([couch-chakra](https://github.com/dmunch/couch
 ```
 INFO:dragnet.addview:average = 1234.66c/s (all_tasks) 154.42c/s (one task)
 INFO:dragnet.addview:total time = 242s
-
 ```
 
 Using the default ES5 couchjs (SpiderMonkey JS runtime under the hood):
 ```
 INFO:dragnet.addview:average = 1193.69c/s (all_tasks) 148.37c/s (one task)
 INFO:dragnet.addview:total time = 247s
-
 ```
 
 Using CPython (`python` language):
 ```
 INFO:dragnet.addview:average = 1285.14c/s (all_tasks) 162.09c/s (one task)
 INFO:dragnet.addview:total time = 229s
-
 ```
 
 Using PyPy (`pypy` language):
@@ -91,8 +88,14 @@ INFO:dragnet.addview:average = 1143.62c/s (all_tasks) 144.07c/s (one task)
 INFO:dragnet.addview:total time = 257s
 ```
 
-TODO: Erlang (if I can write one properly) and jq (when there's a proper query server for it).
+Using native Erlang query server (quite likely not the best function quality out there affected it a bit):
+```
+INFO:dragnet.addview:average = 1343.94c/s (all_tasks) 169.51c/s (one task)
+INFO:dragnet.addview:total time = 219s
+```
 
-Even though CPython turned out the fastest — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually).
+TODO: jq (when there's a proper query server for it).
+
+Even though CPython turned out the fastest among external query servers — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually). Additionally there might be a disk I/O bottleneck with these tests as they were run on HDD rather than SSD (TODO too).
 
 TODO: Write a proper article about all this.

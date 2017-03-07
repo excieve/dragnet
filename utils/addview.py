@@ -141,7 +141,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--view', help='CouchDB view name')
     parser.add_argument('-l', '--language', help='Function language',
                         default='javascript',
-                        choices=['javascript', 'coffeescript', 'chakra', 'python', 'pypy'])
+                        choices=['javascript', 'coffeescript', 'chakra', 'python', 'pypy', 'erlang'])
     parser.add_argument('-V', '--verbose', help='Verbose logging', action='store_true', default=False)
     parser.add_argument('-b', '--benchmark', help='Measure performance metrics after adding the view',
                         action='store_true',

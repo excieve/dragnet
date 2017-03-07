@@ -22,7 +22,7 @@ def fun(doc):
             try:
                 size = float(income_doc['sizeIncome'].strip().replace(',', '.') or 0)
             except Exception:
-                # Sometimes there's just unconvertible shit out there (TODO: log what exactly)
+                # Sometimes there's just unconvertible shit out there (e.g. property params instead of income value)
                 size = 0.0
 
             if income_doc['person'] == '1':
