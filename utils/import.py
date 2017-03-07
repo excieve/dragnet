@@ -13,6 +13,34 @@ logger = log_to_stderr()
 logger.setLevel(logging.INFO)
 
 
+def normalise_prices(doc_id, parent, field):
+    # In-place modifications to keep copying to the minimum
+    for key in parent:
+        if key == 'empty':
+            continue
+        try:
+            parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
+        except Exception:
+            logger.info('Wrong "{}" field value for doc ID {}: {}'
+                        .format(field, doc_id, parent[key][field]))
+            parent[key][field] = 0.0
+    return parent
+
+
+def preprocess_doc(doc):
+    # Normalize price values to floats
+    step_11 = doc.get('step_11', None)
+    if isinstance(step_11, dict):
+        normalise_prices(doc['_id'], step_11, 'sizeIncome')
+    step_6 = doc.get('step_6', None)
+    if isinstance(step_6, dict):
+        normalise_prices(doc['_id'], step_6, 'costDate')
+    step_3 = doc.get('step_3', None)
+    if isinstance(step_3, dict):
+        normalise_prices(doc['_id'], step_3, 'costDate')
+    return doc
+
+
 def import_batch(docs, db_config):
     """Bulk import a batch of ElasticSearch-like documents into CouchDB"""
     t1 = process_time()
@@ -22,7 +50,7 @@ def import_batch(docs, db_config):
             doc_object = json.loads(d)
             source = doc_object['_source']['nacp_orig']
             source.update({'_id': doc_object['_id']})
-            docs_objects.append(source)
+            docs_objects.append(preprocess_doc(source))
 
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]

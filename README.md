@@ -31,7 +31,6 @@ This will run import in 8 processes of 1500 chunks max per each concurrently aga
 
 ## Adding views with map/reduce functions
 
-We currently support JavaScript and CoffeeScript (provided compiler is installed on the system) as languages for MapReduce functions.
 Reference functions (currently only `map` stage) are available in `data/reference` directory in this repository.
 
 In order to add a function (and create a design document for it) please use the following helper script:
@@ -60,8 +59,8 @@ Here's some results of functions from `data/reference` run over a dataset of ≈
 Using ES6 with `chakra` language ([couch-chakra](https://github.com/dmunch/couch-chakra) query server utilising ChakraCore JS runtime):
 
 ```
-INFO:dragnet.addview:average = 1234.66c/s (all_tasks) 154.42c/s (one task)
-INFO:dragnet.addview:total time = 242s
+INFO:dragnet.addview:average = 1237.26c/s (all_tasks) 154.38c/s (one task)
+INFO:dragnet.addview:total time = 241s
 ```
 
 Using the default ES5 couchjs (SpiderMonkey JS runtime under the hood):
@@ -72,30 +71,30 @@ INFO:dragnet.addview:total time = 247s
 
 Using CPython (`python` language):
 ```
-INFO:dragnet.addview:average = 1285.14c/s (all_tasks) 162.09c/s (one task)
-INFO:dragnet.addview:total time = 229s
+INFO:dragnet.addview:average = 1316.64c/s (all_tasks) 163.34c/s (one task)
+INFO:dragnet.addview:total time = 223s
 ```
 
 Using PyPy (`pypy` language):
 ```
-INFO:dragnet.addview:average = 1046.89c/s (all_tasks) 132.16c/s (one task)
-INFO:dragnet.addview:total time = 278s
+INFO:dragnet.addview:average = 1055.33c/s (all_tasks) 132.30c/s (one task)
+INFO:dragnet.addview:total time = 282s
 ```
 
 Using JS (SpiderMonkey) transpiled from CoffeeScript (`coffeescript` language):
 ```
-INFO:dragnet.addview:average = 1143.62c/s (all_tasks) 144.07c/s (one task)
-INFO:dragnet.addview:total time = 257s
+INFO:dragnet.addview:average = 1214.11c/s (all_tasks) 151.64c/s (one task)
+INFO:dragnet.addview:total time = 242s
 ```
 
 Using native Erlang query server (quite likely not the best function quality out there affected it a bit):
 ```
-INFO:dragnet.addview:average = 1343.94c/s (all_tasks) 169.51c/s (one task)
-INFO:dragnet.addview:total time = 219s
+INFO:dragnet.addview:average = 1391.36c/s (all_tasks) 174.55c/s (one task)
+INFO:dragnet.addview:total time = 213s
 ```
 
 TODO: jq (when there's a proper query server for it).
 
-Even though CPython turned out the fastest among external query servers — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually). Additionally there might be a disk I/O bottleneck with these tests as they were run on HDD rather than SSD (TODO too).
+Even though CPython turned out the fastest among external query servers — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually). Additionally there might be a disk I/O and bottleneck with these tests as they were run on HDD rather than SSD (TODO too).
 
 TODO: Write a proper article about all this.

@@ -15,22 +15,19 @@ def fun(doc):
     if 'step_11' in doc:
         if not isinstance(doc['step_11'], dict):
             return
-        for income_doc in doc['step_11'].values():
-            if not isinstance(income_doc, dict):
+        for key, income_doc in doc['step_11'].items():
+            if key == 'empty':
                 continue
 
-            try:
-                size = float(income_doc['sizeIncome'].strip().replace(',', '.') or 0)
-            except Exception:
-                # Sometimes there's just unconvertible shit out there (e.g. property params instead of income value)
-                size = 0.0
+            size = income_doc['sizeIncome']
+            is_salary = income_doc['objectType'] == u"Заробітна плата отримана за основним місцем роботи"
 
             if income_doc['person'] == '1':
-                if income_doc['objectType'] == u"Заробітна плата отримана за основним місцем роботи":
+                if is_salary:
                     declarant_salary_sum += size
                 declarant_total_sum += size
             else:
-                if income_doc['objectType'] == u"Заробітна плата отримана за основним місцем роботи":
+                if is_salary:
                     family_salary_sum += size
                 family_total_sum += size
 

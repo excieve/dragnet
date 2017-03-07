@@ -7,31 +7,12 @@ fun({Doc}) ->
         NotObject -> NotObject
     end,
 
-    % I'm not sure it's the best way to convert a binstring to a int or float number but seems pretty reliable
-    Bin_to_num = fun(Bin) ->
-        case Bin of
-            <<>> -> 0;
-            nil -> 0;
-            Value ->
-                try
-                    binary_to_integer(Value)
-                catch
-                    error:badarg ->
-                        try
-                            binary_to_float(Value)
-                        catch
-                            error:badarg -> 0
-                        end
-                end
-        end
-    end,
-
     Calc_income = fun(Value, Acc) ->
         case Value of
             {Key, {IncomeDoc}} ->
                 {DeclarantSalarySum, FamilySalarySum, DeclarantTotalSum, FamilyTotalSum} = Acc,
                 IsSalary = proplists:get_value(<<"objectType">>, IncomeDoc) =:= <<"Заробітна плата отримана за основним місцем роботи">>,
-                Size = Bin_to_num(proplists:get_value(<<"sizeIncome">>, IncomeDoc)),
+                Size = proplists:get_value(<<"sizeIncome">>, IncomeDoc),
                 case proplists:get_value(<<"person">>, IncomeDoc) of
                     <<"1">> ->
                         if

@@ -13,17 +13,16 @@
             const incomeDoc = doc.step_11[key];
             if (typeof(incomeDoc) != 'object')
                 continue;
-            const size = parseFloat(incomeDoc.sizeIncome.replace(',', '.')) || 0.0,
-                  isSalary = (incomeDoc.objectType == 'Заробітна плата отримана за основним місцем роботи');
+            const isSalary = (incomeDoc.objectType == 'Заробітна плата отримана за основним місцем роботи');
 
             if (incomeDoc.person == '1') {
                 if (isSalary)
-                    declarantSalarySum += size;
-                declarantTotalSum += size;
+                    declarantSalarySum += incomeDoc.sizeIncome;
+                declarantTotalSum += incomeDoc.sizeIncome;
             } else {
                 if (isSalary)
-                    familySalarySum += size;
-                familyTotalSum += size;
+                    familySalarySum += incomeDoc.sizeIncome;
+                familyTotalSum += incomeDoc.sizeIncome;
             }
         };
     }

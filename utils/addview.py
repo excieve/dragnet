@@ -83,9 +83,9 @@ def do_benchmark(couch, view):
 
         task = tasks[0]
         started_on, updated_on = task['started_on'], task['updated_on']
-        if started_on == updated_on:
-            continue
         total_time = updated_on - started_on  # This will typically end up to be the last task's time, thus longest
+        if total_time == 0:
+            continue
 
         changes_per_sec = [float(t['changes_done']) / float(t['updated_on'] - t['started_on']) for t in tasks]
         all_changes_per_sec.append(sum(changes_per_sec))

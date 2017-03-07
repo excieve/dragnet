@@ -13,16 +13,16 @@
         for key, income_doc of doc.step_11
             if typeof income_doc != 'object'
                 continue
-            size = parseFloat(income_doc.sizeIncome.replace(',', '.')) or 0.0
+            is_salary = income_doc.objectType == 'Заробітна плата отримана за основним місцем роботи'
 
             if income_doc.person == '1'
-                if income_doc.objectType == 'Заробітна плата отримана за основним місцем роботи'
-                    declarant_salary_sum += size
-                declarant_total_sum += size
+                if is_salary
+                    declarant_salary_sum += income_doc.sizeIncome
+                declarant_total_sum += income_doc.sizeIncome
             else
-                if income_doc.objectType == 'Заробітна плата отримана за основним місцем роботи'
-                    family_salary_sum += size
-                family_total_sum += size
+                if is_salary
+                    family_salary_sum += income_doc.sizeIncome
+                family_total_sum += income_doc.sizeIncome
 
     result = {
         FIO: "#{doc.step_1.lastname} #{doc.step_1.firstname} #{doc.step_1.middlename}",
