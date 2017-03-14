@@ -1,4 +1,5 @@
-let f = (doc) => {
+// let f = (doc) => {
+(doc) => {
     const incomeMapping = {
         "заробітна плата отримана за основним місцем роботи": "salarymain",
         "заробітна плата отримана за сумісництвом": "salarysecond",
@@ -52,8 +53,8 @@ let f = (doc) => {
     }
 
 
-    if (doc.step_3) {
-        family = Object.keys(doc.step_3);
+    if (doc.step_2) {
+        family = Object.keys(doc.step_2);
     }
 
     if (doc.step_11) {
@@ -64,10 +65,11 @@ let f = (doc) => {
 
             if (incomeDoc.person == '1')
                 person_key = "d";  // D is for Declarant
-            else if (incomeDoc.person in family)
+            else if (family.indexOf(String(incomeDoc.person)) != -1)
                 person_key = "f";  // F is for Family
-            else
+            else {
                 person_key = "u";  // U is for fUcked Up
+            }
 
             if (incomeDoc.objectType.toLowerCase() in incomeMapping)
                 source_key = incomeMapping[incomeDoc.objectType.toLowerCase()]
@@ -90,14 +92,15 @@ let f = (doc) => {
         };
     }
 
-    return(doc._id, result_dict);
+    emit(doc._id, result_dict);
+    // return result_dict;
 }
 
-let json_data = require('../../test_assets/poroshenko_jr.json')
-console.log(f(json_data["data"]))
+// let json_data = require('../../test_assets/poroshenko_jr.json')
+// console.log(f(json_data["data"]))
 
-json_data = require('../../test_assets/poroshenko.json')
-console.log(f(json_data["data"]))
+// json_data = require('../../test_assets/poroshenko.json')
+// console.log(f(json_data["data"]))
 
-json_data = require('../../test_assets/derkatch.json')
-console.log(f(json_data["data"]))
+// json_data = require('../../test_assets/derkatch.json')
+// console.log(f(json_data["data"]))
