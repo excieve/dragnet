@@ -36,12 +36,6 @@
     if (doc.step_0.declarationType != '1')
         return;
 
-    let declarantSalarySum = 0.0,
-        familySalarySum = 0.0,
-        declarantTotalSum = 0.0,
-        familyTotalSum = 0.0;
-
-
     let result_dict = {},
         family = [],
         person_key = "",
@@ -90,7 +84,7 @@
             if (!Number.isNaN(val))
                 result_dict[`income.sum.${person_key}.${geosource_key}.${source_key}`] += val;
             else
-                result_dict[`income.hidden.$(person_key)`] = 1;
+                result_dict[`income.hidden.${person_key}`] = 1;
         };
     }
 
