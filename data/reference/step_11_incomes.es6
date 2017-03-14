@@ -24,7 +24,11 @@
     };
 
     const personValues = ["d", "f", "u"],
-          geoSourceValues = ["ukr", "abr"];
+          geoSourceValues = ["ukr", "abr"],
+          abroadSources = [
+            "іноземний громадянин",
+            "юридична особа, зареєстрована за кордоном"
+    ];
 
     if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType)
         return;
@@ -76,9 +80,7 @@
             else
                 source_key = "other";
 
-            if (incomeDoc.source_citizen.toLowerCase() in [
-                    "іноземний громадянин",
-                    "юридична особа, зареєстрована за кордоном"])
+            if (abroadSources.indexOf(incomeDoc.source_citizen.toLowerCase()) != -1)
                 geosource_key = "abr";
             else
                 geosource_key = "ukr";
