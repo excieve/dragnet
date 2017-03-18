@@ -11,7 +11,7 @@ fun({Doc}) ->
         case Value of
             {Key, {IncomeDoc}} ->
                 {DeclarantSalarySum, FamilySalarySum, DeclarantTotalSum, FamilyTotalSum} = Acc,
-                IsSalary = proplists:get_value(<<"objectType">>, IncomeDoc) =:= <<"Заробітна плата отримана за основним місцем роботи">>,
+                IsSalary = proplists:get_value(<<"objectType">>, IncomeDoc) =:= <<"salarymain">>,
                 Size = proplists:get_value(<<"sizeIncome">>, IncomeDoc),
                 case proplists:get_value(<<"person">>, IncomeDoc) of
                     <<"1">> ->

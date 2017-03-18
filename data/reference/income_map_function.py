@@ -20,7 +20,7 @@ def fun(doc):
                 continue
 
             size = income_doc['sizeIncome']
-            is_salary = income_doc['objectType'] == u"Заробітна плата отримана за основним місцем роботи"
+            is_salary = income_doc['objectType'] == u"salarymain"
 
             if income_doc['person'] == '1':
                 if is_salary:

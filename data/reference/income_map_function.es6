@@ -13,7 +13,7 @@
             const incomeDoc = doc.step_11[key];
             if (typeof(incomeDoc) != 'object')
                 continue;
-            const isSalary = (incomeDoc.objectType == 'Заробітна плата отримана за основним місцем роботи');
+            const isSalary = (incomeDoc.objectType == 'salarymain');
 
             if (incomeDoc.person == '1') {
                 if (isSalary)

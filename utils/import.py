@@ -4,46 +4,75 @@ import argparse
 from itertools import zip_longest
 from functools import partial
 from multiprocessing import Pool, log_to_stderr
-from time import process_time
+from time import perf_counter
 
 from cloudant import couchdb
 
+import mappings
 
+
+logging.basicConfig()
 logger = log_to_stderr()
 logger.setLevel(logging.INFO)
 
 
-def normalise_prices(doc_id, parent, field):
-    # In-place modifications to keep copying to the minimum
+def iterate_ugly_dict(parent):
+    if not isinstance(parent, dict):
+        return []
     for key in parent:
         if key == 'empty':
             continue
-        try:
-            parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
-        except Exception:
-            logger.info('Wrong "{}" field value for doc ID {}: {}'
-                        .format(field, doc_id, parent[key][field]))
-            parent[key][field] = 0.0
-    return parent
+        yield key
+
+
+def normalise_money(doc_id, parent, key, field):
+    # In-place modifications to keep copying to the minimum
+    try:
+        parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
+    except Exception:
+        logger.info('Wrong "{}" field value for doc ID {}: {}'
+                    .format(field, doc_id, parent[key][field]))
+        parent[key][field] = 'NaN'
+
+
+def encode_categories(parent, key, field, mapping):
+    category = parent[key].get(field)
+    if category:
+        parent[key][field] = mapping.get(category.lower().strip(), 'other')
+
+
+def encode_boooleans(parent, key, field, new_field, tags, delete_original=True):
+    tag_value = parent[key].get(field)
+    if tag_value:
+        parent[key][new_field] = tag_value.lower().strip() in tags
+        if delete_original:
+            del parent[key][field]
 
 
 def preprocess_doc(doc):
-    # Normalize price values to floats
+    # Normalize money values to floats
     step_11 = doc.get('step_11', None)
-    if isinstance(step_11, dict):
-        normalise_prices(doc['_id'], step_11, 'sizeIncome')
+    for key in iterate_ugly_dict(step_11):
+        normalise_money(doc['_id'], step_11, key, 'sizeIncome')
+        encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING)
+        encode_boooleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
-    if isinstance(step_6, dict):
-        normalise_prices(doc['_id'], step_6, 'costDate')
+    for key in iterate_ugly_dict(step_6):
+        normalise_money(doc['_id'], step_6, key, 'costDate')
     step_3 = doc.get('step_3', None)
-    if isinstance(step_3, dict):
-        normalise_prices(doc['_id'], step_3, 'costDate')
+    for key in iterate_ugly_dict(step_3):
+        normalise_money(doc['_id'], step_3, key, 'costDate')
+    step_12 = doc.get('step_12', None)
+    for key in iterate_ugly_dict(step_12):
+        normalise_money(doc['_id'], step_12, key, 'sizeAssets')
+        encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING)
+        encode_boooleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     return doc
 
 
 def import_batch(docs, db_config):
     """Bulk import a batch of ElasticSearch-like documents into CouchDB"""
-    t1 = process_time()
+    t1 = perf_counter()
     docs_objects = []
     for d in docs:
         if d:
@@ -51,12 +80,15 @@ def import_batch(docs, db_config):
             source = doc_object['_source']['nacp_orig']
             source.update({'_id': doc_object['_id']})
             docs_objects.append(preprocess_doc(source))
-
+    imported = 0
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
-        db.bulk_docs(docs_objects)
-    t2 = process_time()
-    return len(docs_objects), t2 - t1
+        # When trying to bulk insert an existing document without providing a new revision ID CouchDB will
+        # throw a conflict error, we'll use this to only insert new stuff without existence checks.
+        imported_docs = list(filter(lambda x: x.get('error') is None, db.bulk_docs(docs_objects)))
+        imported += len(imported_docs)
+    t2 = perf_counter()
+    return len(docs_objects), imported, t2 - t1
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -67,23 +99,24 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def import_all(docs_file, db_config, concurrency, chunks_per_process):
-    total_docs, total_time = 0, 0
+    total_imported_docs, rates = 0, []
     with open(docs_file, 'r', encoding='utf-8') as f:
         with Pool(concurrency) as pool:
             # Lazily consume batches of `chunks_per_process` for every process in the pool of `concurrency`
             results = pool.imap(partial(import_batch, db_config=db_config),
                                 grouper(f, chunks_per_process))
             for i, result in enumerate(results):
-                num_docs, time_spent = result
-                total_docs += num_docs
-                total_time += time_spent
+                num_docs, imported_docs, time_spent = result
+                total_imported_docs += imported_docs
+                rate = float(num_docs) / float(time_spent)
+                rates.append(rate)
                 logger.info(
-                    'Batch #{} finished importing {} documents in {:.2f}s with the speed of {:.2f}docs/s'
-                    .format(i, num_docs, time_spent, float(num_docs) / float(time_spent))
+                    'Batch #{} finished importing {} new documents in {:.2f}s with the rate of {:.2f}docs/s'
+                    .format(i, imported_docs, time_spent, rate)
                 )
     logger.info(
-        'Total imported {} documents in {:.2f}s with the speed of {:.2f}docs/s'
-        .format(total_docs, total_time, float(total_docs) / float(total_time))
+        'Total imported {} new documents with the avg rate of {:.2f}docs/s across all processes'
+        .format(total_imported_docs, sum(rates) / float(len(rates)) * concurrency)
     )
 
 

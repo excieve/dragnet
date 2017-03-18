@@ -13,7 +13,7 @@
         for key, income_doc of doc.step_11
             if typeof income_doc != 'object'
                 continue
-            is_salary = income_doc.objectType == 'Заробітна плата отримана за основним місцем роботи'
+            is_salary = income_doc.objectType == 'salarymain'
 
             if income_doc.person == '1'
                 if is_salary
