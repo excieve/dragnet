@@ -1,6 +1,11 @@
-// let f = (doc) => {
 (doc) => {
-    const assetsMapping = {
+    if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType)
+        return;
+
+    if (doc.step_0.declarationType != '1')
+        return;
+
+    const assets_mapping = {
         "кошти, розміщені на банківських рахунках": "bank",
         "готівкові кошти": "cash",
         "внески до кредитних спілок та інших небанківських фінансових установ": "credit_union",
@@ -9,7 +14,7 @@
         "інше": "other"
     };
 
-    const exchangeRates = {
+    const exchange_rates = {
         "UAH": 1,
         "AUD": 17.49374800,
         "BYR": 0.00129000,
@@ -44,89 +49,72 @@
         "GHS": 5.85950000,
     }
 
-    const personValues = ["d", "f", "u"],
-          geoSourceValues = ["ukr", "abr"],
-          currencyValues = ["UAH", "OTH"],
-          abroadSources = [
+    const person_values = ["d", "f", "u"],
+          geo_source_values = ["ukr", "abr"],
+          currency_values = ["UAH", "OTH"],
+          abroad_sources = [
             "іноземний громадянин",
             "юридична особа, зареєстрована за кордоном"
-    ];
-
-    if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType)
-        return;
-
-    if (doc.step_0.declarationType != '1')
-        return;
+          ];
 
     let result_dict = {},
         family = [],
         person_key = "",
         source_key = "",
         geosource_key = "",
-        curr;
+        curr_key = "",
+        val;
 
-    for (let person in personValues) {
-        result_dict[`assets.hidden.${personValues[person]}`] = 0.0;
-        for (let geo_src in geoSourceValues)
-            for (let src in assetsMapping)
-                for (let curr in currencyValues)
-                    result_dict[`assets.sum.${personValues[person]}.${geoSourceValues[geo_src]}.${assetsMapping[src]}.${currencyValues[curr]}`] = 0.0;
-    }
-
-
-    if (doc.step_2) {
-        family = Object.keys(doc.step_2);
+    for (let person of person_values) {
+        result_dict[`assets.hidden.${person}`] = 0.0;
+        for (let geo_src of geo_source_values)
+            for (let src in assets_mapping)
+                for (let curr of currency_values)
+                    result_dict[`assets.sum.${person}.${geo_src}.${assets_mapping[src]}.${curr}`] = 0.0;
     }
 
     if (doc.step_12) {
         for (let key in doc.step_12) {
-            const assetsDoc = doc.step_12[key];
-            if (typeof(assetsDoc) != 'object')
+            const assets_doc = doc.step_12[key];
+            if (typeof(assets_doc) != 'object')
                 continue;
 
-            if (assetsDoc.person == '1')
+            if (assets_doc.person == '1')
                 person_key = "d";  // D is for Declarant
-            else if (family.indexOf(String(assetsDoc.person)) != -1)
+            else if (String(assets_doc.person) in (doc.step_2 || {}))                
                 person_key = "f";  // F is for Family
             else {
                 person_key = "u";  // U is for fUcked Up
             }
 
-            if (assetsDoc.objectType.toLowerCase() in assetsMapping)
-                source_key = assetsMapping[assetsDoc.objectType.toLowerCase()]
+            if (assets_doc.objectType.toLowerCase() in assets_mapping)
+                source_key = assets_mapping[assets_doc.objectType.toLowerCase()]
             else
                 source_key = "other";
 
-            if (abroadSources.indexOf(assetsDoc.organization_type.toLowerCase()) != -1)
+            if (abroad_sources.indexOf(assets_doc.organization_type.toLowerCase()) != -1)
                 geosource_key = "abr";
             else
                 geosource_key = "ukr";
 
-            let val = Number.parseInt(assetsDoc.sizeAssets);
+            val = Number.parseFloat(assets_doc.sizeAssets);
+            curr_key = "UAH";
+            if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != "UAH") {
+                curr_key = "OTH";
+                if (!(assets_doc.assetsCurrency in exchange_rates)) {
+                    log(`${assets_doc.assetsCurrency} currency code is not known`);
+                    continue;
+                }
 
-            if (assetsDoc.assetsCurrency == "UAH") {
-                curr = "UAH"
-            }else {
-                curr = "OTH"
-                val *= exchangeRates[assetsDoc.assetsCurrency]
+                val *= exchange_rates[assets_doc.assetsCurrency]
             }
 
             if (!Number.isNaN(val))
-                result_dict[`assets.sum.${person_key}.${geosource_key}.${source_key}.${curr}`] += val;
+                result_dict[`assets.sum.${person_key}.${geosource_key}.${source_key}.${curr_key}`] += val;
             else
                 result_dict[`assets.hidden.${person_key}`] = 1;
         };
     }
 
     emit(doc._id, result_dict);
-    // return result_dict;
 }
-
-// let json_data = require('../../test_assets/poroshenko_jr.json')
-// console.log(f(json_data["data"]))
-
-// json_data = require('../../test_assets/poroshenko.json')
-// console.log(f(json_data["data"]))
-
-// json_data = require('../../test_assets/derkatch.json')
-// console.log(f(json_data["data"]))
