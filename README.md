@@ -43,6 +43,14 @@ Supported `-l` (language) values are currently "javascript" (for the default cou
 
 TODO: Create a Dockerfile for utils.
 
+## Exporting views
+
+Currently exporting views to CSV files is supported using the following script:
+```
+python3 utils/export.py ddoc_name view_name -u username -p password -o /path/to/output.csv
+```
+However, it's currently somewhat hardcoded to the view functions from `views/`. See `utils/export.py` for more details.
+
 
 ## Benchmarking
 
@@ -54,7 +62,7 @@ Another point to keep in mind is having your DB volume on the host side to avoid
 
 For convenience there's a Dockerfile for benchmarking various query servers in `couchdb/benchmark`, which depends on "dragnet/couchdb" image to be present.
 
-Here's some results of functions from `data/reference` run over a dataset of ≈300000 real-world documents with a nested structure,
+I've written a detailed article about [benchmarking CouchDB views](https://medium.com/@excieve/benchmarking-couchdb-views-abb7a0a891b2) using this project and our dataset. But here's some quick results of functions from `data/reference` run over a dataset of ≈300000 real-world documents with a nested structure.
 
 Using ES6 with `chakra` language ([couch-chakra](https://github.com/dmunch/couch-chakra) query server utilising ChakraCore JS runtime):
 
@@ -95,6 +103,4 @@ INFO:dragnet.addview:total time = 213s
 
 TODO: jq (when there's a proper query server for it).
 
-Even though CPython turned out the fastest among external query servers — it doesn't mean it will be so on all functions (there are cases where PyPy is ≈3 times faster). In fact, Erlang will always be the fastest since the real bottleneck is usually in I/O between CouchDB and the external query servers (couch-chakra might address it eventually). Additionally there might be a disk I/O and bottleneck with these tests as they were run on HDD rather than SSD (TODO too).
 
-TODO: Write a proper article about all this.
