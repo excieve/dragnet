@@ -137,7 +137,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--password', help='CouchDB password')
     parser.add_argument('-d', '--dbname', help='CouchDB database name', default='declarations')
     parser.add_argument('-e', '--endpoint', help='CouchDB endpoint', default='http://localhost:5984')
-    parser.add_argument('-D', '--designdoc', help='CouchDB design doc name', default='default')
+    parser.add_argument('-D', '--designdoc', help='CouchDB design doc name')
     parser.add_argument('-v', '--view', help='CouchDB view name')
     parser.add_argument('-l', '--language', help='Function language',
                         default='javascript',

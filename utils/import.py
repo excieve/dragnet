@@ -26,7 +26,7 @@ def iterate_ugly_dict(parent):
 
 
 def normalise_money(doc_id, parent, key, field):
-    # In-place modifications to keep copying to the minimum
+    # Normalize money values to floats
     try:
         parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
     except Exception:
@@ -36,26 +36,26 @@ def normalise_money(doc_id, parent, key, field):
 
 
 def encode_categories(parent, key, field, mapping):
-    category = parent[key].get(field)
-    if category:
+    category = parent[key].get(field, None)
+    if category is not None:
         parent[key][field] = mapping.get(category.lower().strip(), 'other')
 
 
-def encode_boooleans(parent, key, field, new_field, tags, delete_original=True):
-    tag_value = parent[key].get(field)
-    if tag_value:
+def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
+    tag_value = parent[key].get(field, None)
+    if tag_value is not None:
         parent[key][new_field] = tag_value.lower().strip() in tags
         if delete_original:
             del parent[key][field]
 
 
 def preprocess_doc(doc):
-    # Normalize money values to floats
+    # In-place modifications to keep copying to the minimum
     step_11 = doc.get('step_11', None)
     for key in iterate_ugly_dict(step_11):
         normalise_money(doc['_id'], step_11, key, 'sizeIncome')
         encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING)
-        encode_boooleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+        encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
     for key in iterate_ugly_dict(step_6):
         normalise_money(doc['_id'], step_6, key, 'costDate')
@@ -66,7 +66,7 @@ def preprocess_doc(doc):
     for key in iterate_ugly_dict(step_12):
         normalise_money(doc['_id'], step_12, key, 'sizeAssets')
         encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING)
-        encode_boooleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+        encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     return doc
 
 
