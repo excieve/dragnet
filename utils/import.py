@@ -1,6 +1,7 @@
 import logging
 import json
 import argparse
+import re
 from itertools import zip_longest
 from functools import partial
 from multiprocessing import Pool, log_to_stderr
@@ -25,46 +26,89 @@ def iterate_ugly_dict(parent):
         yield key
 
 
-def normalise_money(doc_id, parent, key, field):
-    # Normalize money values to floats
+def normalise_numerical(doc_id, parent, key, field):
+    # Normalize numerical values to floats
     try:
         parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
     except Exception:
         logger.info('Wrong "{}" field value for doc ID {}: {}'
-                    .format(field, doc_id, parent[key][field]))
+                    .format(field, doc_id, parent[key].get(field)))
         parent[key][field] = 'NaN'
 
 
 def encode_categories(parent, key, field, mapping):
     category = parent[key].get(field, None)
     if category is not None:
-        parent[key][field] = mapping.get(category.lower().strip(), 'other')
+        parent[key][field] = mapping.get(str(category).lower().strip(), 'other')
 
 
 def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
     tag_value = parent[key].get(field, None)
     if tag_value is not None:
-        parent[key][new_field] = tag_value.lower().strip() in tags
+        parent[key][new_field] = str(tag_value).lower().strip() in tags
         if delete_original:
             del parent[key][field]
 
 
+def transform_bad_list(data, key_field):
+    # Some parts of the dataset are odd-looking lists instead of dicts as in majority of cases
+    result = {}
+    for item in data:
+        if item and isinstance(item, dict):
+            key = item.get(key_field, None)
+            if key is not None:
+                result[key] = item
+    return result
+
+
+def pattern_classify(parent, new_field, mapping):
+    parent[new_field] = 'Немає даних'
+    for field, pattern, group in mapping:
+        field_value = parent.get(field, None)
+        if field_value is not None and re.search(pattern, field_value.strip().lower()) is not None:
+            parent[new_field] = group
+            break
+
+
 def preprocess_doc(doc):
     # In-place modifications to keep copying to the minimum
+    step_1 = doc.get('step_1', None)
+    if step_1:
+        if 'workPlace' in step_1 or 'workPost' in step_1:
+            pattern_classify(step_1, 'organization_group', mappings.WORK_ORGANISATION_REGEXPS)
+        else:
+            step_1['organization_group'] = 'Немає даних'
     step_11 = doc.get('step_11', None)
     for key in iterate_ugly_dict(step_11):
-        normalise_money(doc['_id'], step_11, key, 'sizeIncome')
+        normalise_numerical(doc['_id'], step_11, key, 'sizeIncome')
         encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING)
         encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
     for key in iterate_ugly_dict(step_6):
-        normalise_money(doc['_id'], step_6, key, 'costDate')
+        normalise_numerical(doc['_id'], step_6, key, 'costDate')
+        normalise_numerical(doc['_id'], step_6, key, 'graduationYear')
+        encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING)
+        rights = step_6[key].get('rights', None)
+        if isinstance(rights, list):
+            rights = transform_bad_list(rights, 'rightBelongs')
+            step_6[key]['rights'] = rights
+        for right_key in iterate_ugly_dict(rights):
+            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING)
     step_3 = doc.get('step_3', None)
     for key in iterate_ugly_dict(step_3):
-        normalise_money(doc['_id'], step_3, key, 'costDate')
+        normalise_numerical(doc['_id'], step_3, key, 'costDate')
+        normalise_numerical(doc['_id'], step_3, key, 'costAssessment')
+        normalise_numerical(doc['_id'], step_3, key, 'totalArea')
+        encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING)
+        rights = step_3[key].get('rights', None)
+        if isinstance(rights, list):
+            rights = transform_bad_list(rights, 'rightBelongs')
+            step_3[key]['rights'] = rights
+        for right_key in iterate_ugly_dict(rights):
+            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING)
     step_12 = doc.get('step_12', None)
     for key in iterate_ugly_dict(step_12):
-        normalise_money(doc['_id'], step_12, key, 'sizeAssets')
+        normalise_numerical(doc['_id'], step_12, key, 'sizeAssets')
         encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING)
         encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     return doc

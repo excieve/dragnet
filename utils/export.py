@@ -11,9 +11,14 @@ logger.setLevel(logging.INFO)
 
 # TODO: possibly take this as an argument in some form
 HEADER_MAP = {
+    'step_3_estate': ['id', 'person', 'type', 'same_year', 'foreign', 'ownership', 'quant', 'space', 'max_space',
+                      'cost_purch', 'cost_last'],
+    'step_6_vehicles': ['id', 'person', 'type', 'same_year', 'ownership', 'quant', 'cost', 'max_cost', 'max_year',
+                        'brand_models'],
     'step_11_income': ['id', 'person', 'type', 'foreign', 'value'],
     'step_12_assets': ['id', 'person', 'type', 'foreign', 'currency', 'value'],
-    'meta': ['id', 'name', 'work_post', 'work_place', 'year']
+    'meta': ['id', 'link', 'name', 'work_post', 'work_place', 'year', 'name_post', 'family', 'organization_group',
+             'region']
 }
 
 
