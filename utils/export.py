@@ -15,11 +15,21 @@ HEADER_MAP = {
                       'cost_purch', 'cost_last'],
     'step_6_vehicles': ['id', 'person', 'type', 'same_year', 'ownership', 'quant', 'cost', 'max_cost', 'max_year',
                         'brand_models'],
-    'step_11_income': ['id', 'person', 'type', 'foreign', 'value'],
+    'step_11_incomes': ['id', 'income.person', 'income.type', 'income.foreign', 'income.value.hidden', 'income.value'],
     'step_12_assets': ['id', 'person', 'type', 'foreign', 'currency', 'value'],
     'meta': ['id', 'link', 'name', 'work_post', 'work_place', 'year', 'name_post', 'family', 'organization_group',
              'region']
 }
+
+
+def write_row(row, writer):
+    keys = row['key']
+    if not isinstance(keys, list):
+        keys = [keys]
+    values = row['value']
+    if not isinstance(values, list):
+        values = [values]
+    writer.writerow(keys + values)
 
 
 def export_view(filename, db_config):
@@ -29,28 +39,28 @@ def export_view(filename, db_config):
         view = design_doc.get_view(db_config['view'])
 
         logger.info('Found view "{}" in design doc "{}".'.format(view.view_name, db_config['design_doc']))
-        zero_result = view(stale='ok', limit=0)
-        logger.info('This view contains {} rows, exporting...'.format(zero_result['total_rows']))
+        first_result = view(stale='ok', limit=1)
+        logger.info('This view contains {} rows, exporting...'.format(first_result['total_rows']))
 
         rows_exported = 0
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             view_writer = csv.writer(csvfile)
             view_writer.writerow(HEADER_MAP[db_config['design_doc']])
-            # TODO: pagination with "skip" as this client does is rather slow on large "skip" values with small limit,
-            # this is the reason we're using huge "page_size". This is still suboptimal though and will only work with
-            # small view rows. There's an alternative to try later, which should work better, utilising B-Tree properly:
+            # Instead of using offsets and limits to get batches we're utilising B-Tree properly:
             # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
-            with view.custom_result(page_size=100000, stale='ok') as result:
-                for row in result:
-                    keys = row['key']
-                    if not isinstance(keys, list):
-                        keys = [keys]
-                    values = row['value']
-                    if not isinstance(values, list):
-                        values = [values]
-                    view_writer.writerow(keys + values)
-                    rows_exported += 1
-                    if rows_exported % 10000 == 0:
+            # This scales very well as the DB never needs to scan over all the previous nodes.
+            rows = first_result['rows']
+            start_key = rows[0]['key']
+            write_row(rows[0], view_writer)
+            rows_exported += 1
+            with view.custom_result(skip=1, limit=20000, stale='ok') as result:
+                while rows:
+                    rows = result[start_key:]
+                    if rows:
+                        start_key = rows[-1]['key']
+                        for row in rows:
+                            write_row(row, view_writer)
+                            rows_exported += 1
                         logger.info('Exported {} rows.'.format(rows_exported))
         logger.info('Total exported {} rows. '.format(rows_exported))
 

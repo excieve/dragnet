@@ -69,7 +69,7 @@
             val *= exchange_rates[assets_doc.assetsCurrency];
         }
 
-        const result_key = `${person_key}.${assets_doc.objectType}.${assets_doc.is_foreign}.${curr_key}`;
+        const result_key = `${person_key}.${assets_doc.objectType_encoded}.${assets_doc.is_foreign}.${curr_key}`;
         if (result_key in result_dict)
             result_dict[result_key] += val;
         else

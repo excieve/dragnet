@@ -10,7 +10,7 @@
         const vehicle_doc = doc.step_6[key];
         if (typeof(vehicle_doc) != 'object')
             continue;
-        if (!vehicle_doc.rights || Array.isArray(vehicle_doc.rights))
+        if (!vehicle_doc.rights)
             continue;
         if (vehicle_doc.costDate == 'NaN' || vehicle_doc.graduationYear == 'NaN')
             continue;
@@ -25,8 +25,8 @@
 
         const owning_date = vehicle_doc.owningDate.split('.'),
               is_same_year = owning_date[2] == doc.step_0.declarationYear1;
-        let per_person_key = `${person_key}.${vehicle_doc.objectType}.${is_same_year}`,
-            all_key = `all.${vehicle_doc.objectType}.${is_same_year}`;
+        let per_person_key = `${person_key}.${vehicle_doc.objectType_encoded}.${is_same_year}`,
+            all_key = `all.${vehicle_doc.objectType_encoded}.${is_same_year}`;
 
         for (let right_key in vehicle_doc.rights) {
             const right = vehicle_doc.rights[right_key];
@@ -35,9 +35,9 @@
             // We only want to account for the vehicle once per owner, so excluding usage rights and co-ownership by others
             if (right.rightBelongs != vehicle_doc.person && right.rightBelongs != 'j')
                 continue;
-            if (right.rightBelongs == 'j' && right.ownershipType == 'comproperty')
+            if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
                 continue;
-            const ownership = `.${right.ownershipType}`;
+            const ownership = `.${right.ownershipType_encoded}`;
             for (let result_key of [per_person_key, all_key]) {
                 result_key += ownership;
                 if (!(result_key in result_dict))

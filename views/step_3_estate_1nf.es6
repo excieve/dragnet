@@ -26,8 +26,8 @@
         const is_foreign = estate_doc.country != '1',
               owning_date = estate_doc.owningDate.split('.'),
               is_same_year = owning_date[2] == doc.step_0.declarationYear1;
-        let per_person_key = `${person_key}.${estate_doc.objectType}.${is_same_year}.${is_foreign}`,
-            all_key = `all.${estate_doc.objectType}.${is_same_year}.${is_foreign}`;
+        let per_person_key = `${person_key}.${estate_doc.objectType_encoded}.${is_same_year}.${is_foreign}`,
+            all_key = `all.${estate_doc.objectType_encoded}.${is_same_year}.${is_foreign}`;
 
         for (let right_key in estate_doc.rights) {
             const right = estate_doc.rights[right_key];
@@ -36,9 +36,9 @@
             // We only want to account for the estate once per owner, so excluding usage rights and co-ownership by others
             if (right.rightBelongs != estate_doc.person && right.rightBelongs != 'j')
                 continue;
-            if (right.rightBelongs == 'j' && right.ownershipType == 'comproperty')
+            if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
                 continue;
-            const ownership = `.${right.ownershipType}`;
+            const ownership = `.${right.ownershipType_encoded}`;
             for (let result_key of [per_person_key, all_key]) {
                 result_key += ownership;
                 if (!(result_key in result_dict))

@@ -21,7 +21,7 @@
             person_key = 'u';  // U is for fUcked Up
         }
 
-        const result_key = `${person_key}.${income_doc.objectType}.${income_doc.is_foreign}`;
+        const result_key = `${person_key}.${income_doc.objectType_encoded}.${income_doc.is_foreign}`;
         if (result_key in result_dict)
             result_dict[result_key] += income_doc.sizeIncome;
         else

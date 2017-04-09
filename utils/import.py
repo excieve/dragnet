@@ -30,20 +30,35 @@ def normalise_numerical(doc_id, parent, key, field):
     # Normalize numerical values to floats
     try:
         parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
+        parent[key]['{}_hidden'.format(field)] = 0
     except Exception:
         logger.info('Wrong "{}" field value for doc ID {}: {}'
                     .format(field, doc_id, parent[key].get(field)))
-        parent[key][field] = 'NaN'
+        parent[key][field] = 0
+        parent[key]['{}_hidden'.format(field)] = 1
 
 
-def encode_categories(parent, key, field, mapping):
+def normalise_empty(parent, key, field):
+    value = str(parent[key].get(field, '')).strip()
+    if not value or 'конфіденц' in value.lower() or 'не надав' in value.lower():
+        parent[key][field] = mappings.EMPTY_MARKER
+    else:
+        parent[key][field] = value
+
+
+def encode_categories(parent, key, field, mapping, new_field=None):
     category = parent[key].get(field, None)
     if category is not None:
-        parent[key][field] = mapping.get(str(category).lower().strip(), 'other')
+        value = mapping.get(str(category).lower().strip(), 'other')
+        if new_field:
+            parent[key][new_field] = value
+        else:
+            parent[key][field] = value
 
 
 def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
     tag_value = parent[key].get(field, None)
+    parent[key][new_field] = mappings.EMPTY_MARKER
     if tag_value is not None:
         parent[key][new_field] = str(tag_value).lower().strip() in tags
         if delete_original:
@@ -62,7 +77,7 @@ def transform_bad_list(data, key_field):
 
 
 def pattern_classify(parent, new_field, mapping):
-    parent[new_field] = 'Немає даних'
+    parent[new_field] = 'Без категорії'
     for field, pattern, group in mapping:
         field_value = parent.get(field, None)
         if field_value is not None and re.search(pattern, field_value.strip().lower()) is not None:
@@ -77,39 +92,52 @@ def preprocess_doc(doc):
         if 'workPlace' in step_1 or 'workPost' in step_1:
             pattern_classify(step_1, 'organization_group', mappings.WORK_ORGANISATION_REGEXPS)
         else:
-            step_1['organization_group'] = 'Немає даних'
+            step_1['organization_group'] = mappings.EMPTY_MARKER
     step_11 = doc.get('step_11', None)
     for key in iterate_ugly_dict(step_11):
         normalise_numerical(doc['_id'], step_11, key, 'sizeIncome')
-        encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING)
+        normalise_empty(step_11, key, 'objectType')
+        normalise_empty(step_11, key, 'incomeSource')
+        encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING,
+                          new_field='objectType_encoded')
         encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
     for key in iterate_ugly_dict(step_6):
         normalise_numerical(doc['_id'], step_6, key, 'costDate')
         normalise_numerical(doc['_id'], step_6, key, 'graduationYear')
-        encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING)
+        normalise_empty(step_6, key, 'objectType')
+        encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING,
+                          new_field='objectType_encoded')
         rights = step_6[key].get('rights', None)
         if isinstance(rights, list):
             rights = transform_bad_list(rights, 'rightBelongs')
             step_6[key]['rights'] = rights
         for right_key in iterate_ugly_dict(rights):
-            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING)
+            normalise_empty(rights, right_key, 'ownershipType')
+            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
+                              new_field='ownershipType_encoded')
     step_3 = doc.get('step_3', None)
     for key in iterate_ugly_dict(step_3):
         normalise_numerical(doc['_id'], step_3, key, 'costDate')
         normalise_numerical(doc['_id'], step_3, key, 'costAssessment')
         normalise_numerical(doc['_id'], step_3, key, 'totalArea')
-        encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING)
+        normalise_empty(step_3, key, 'objectType')
+        encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING,
+                          new_field='objectType_encoded')
         rights = step_3[key].get('rights', None)
         if isinstance(rights, list):
             rights = transform_bad_list(rights, 'rightBelongs')
             step_3[key]['rights'] = rights
         for right_key in iterate_ugly_dict(rights):
-            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING)
+            normalise_empty(rights, right_key, 'ownershipType')
+            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
+                              new_field='ownershipType_encoded')
     step_12 = doc.get('step_12', None)
     for key in iterate_ugly_dict(step_12):
         normalise_numerical(doc['_id'], step_12, key, 'sizeAssets')
-        encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING)
+        normalise_empty(step_12, key, 'objectType')
+        encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING,
+                          new_field='objectType_encoded')
         encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     return doc
 
@@ -122,7 +150,10 @@ def import_batch(docs, db_config):
         if d:
             doc_object = json.loads(d)
             source = doc_object['_source']['nacp_orig']
-            source.update({'_id': doc_object['_id']})
+            source.update({
+                '_id': doc_object['_id'],
+                'mapped_region': doc_object['_source']['general']['post']['region']
+            })
             docs_objects.append(preprocess_doc(source))
     imported = 0
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
