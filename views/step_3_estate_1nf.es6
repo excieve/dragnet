@@ -12,7 +12,7 @@
             continue;
         if (!estate_doc.rights)
             continue;
-        if (estate_doc.totalArea == 'NaN' || estate_doc.costDate == 'NaN' || estate_doc.costAssessment == 'NaN')
+        if (estate_doc.totalArea_hidden && estate_doc.costDate_hidden && estate_doc.costAssessment_hidden)
             continue;
 
         if (estate_doc.person == '1')

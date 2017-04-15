@@ -10,7 +10,7 @@
         const income_doc = doc.step_11[key];
         if (typeof(income_doc) != 'object')
             continue;
-        if (income_doc.sizeIncome == 'NaN')
+        if (income_doc.sizeIncome_hidden)
             continue;
 
         if (income_doc.person == '1')

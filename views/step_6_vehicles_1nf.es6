@@ -12,7 +12,7 @@
             continue;
         if (!vehicle_doc.rights)
             continue;
-        if (vehicle_doc.costDate == 'NaN' || vehicle_doc.graduationYear == 'NaN')
+        if (vehicle_doc.costDate_hidden && vehicle_doc.graduationYear_hidden)
             continue;
 
         if (vehicle_doc.person == '1')
@@ -46,7 +46,11 @@
                 result_dict[result_key][1] += vehicle_doc.costDate;
                 result_dict[result_key][2] = Math.max(vehicle_doc.costDate, result_dict[result_key][2]);
                 result_dict[result_key][3] = Math.max(vehicle_doc.graduationYear, result_dict[result_key][3]);
-                result_dict[result_key][4] += `${vehicle_doc.brand} ${vehicle_doc.model};`;
+                if (vehicle_doc.brand)
+                    result_dict[result_key][4] += vehicle_doc.brand;
+                if (vehicle_doc.model)
+                    result_dict[result_key][4] += ` ${vehicle_doc.model}`;
+                result_dict[result_key][4] += ';';
             }
         }
     }

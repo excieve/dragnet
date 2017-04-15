@@ -60,7 +60,7 @@ def process_source(map_function_source, reduce_function_source, language):
 def do_benchmark(couch, view):
     # Call the view in order to launch the indexing process.
     # This is fire and forget as it will most likely timeout and we're not interested in the result anyway.
-    proc = subprocess.Popen(['curl', '-s', '{}?limit=21'.format(view.url)],
+    proc = subprocess.Popen(['curl', '-s', '{}?limit=1&reduce=false'.format(view.url)],
                             start_new_session=True, stdout=subprocess.DEVNULL)
     logger.info('Initiated the view query as pid {}.'.format(proc.pid))
     time.sleep(2)

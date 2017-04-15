@@ -21,7 +21,7 @@ def iterate_ugly_dict(parent):
     if not isinstance(parent, dict):
         return []
     for key in parent:
-        if key == 'empty':
+        if key == 'empty' or not isinstance(parent[key], dict):
             continue
         yield key
 

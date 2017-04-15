@@ -39,43 +39,37 @@
         "GHS": 5.85950000,
     }
 
-    let result_dict = {},
-        person_key = ''
-        curr_key = 'UAH'
-        val = 0.0;
+    let declarant_assets = 0.0,
+        family_assets = 0.0,
+        total_assets = 0.0,
+        has_hidden = false,
+        has_foreign = false;
     for (let key in doc.step_12) {
         const assets_doc = doc.step_12[key];
         if (typeof(assets_doc) != 'object')
             continue;
-        if (assets_doc.sizeAssets_hidden)
+        if (assets_doc.is_foreign == true)
+            has_foreign = true;
+        if (assets_doc.sizeAssets_hidden) {
+            has_hidden = true;
             continue;
-
-        if (assets_doc.person == '1')
-            person_key = 'd';  // D is for Declarant
-        else if (String(assets_doc.person) in (doc.step_2 || {}))
-            person_key = 'f';  // F is for Family
-        else {
-            person_key = 'u';  // U is for fUcked Up
         }
 
-        val = assets_doc.sizeAssets;
+        let val = assets_doc.sizeAssets;
         if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != 'UAH') {
-            curr_key = 'OTH';
             if (!(assets_doc.assetsCurrency in exchange_rates)) {
                 log(`${assets_doc.assetsCurrency} currency code is not known`);
                 continue;
             }
-
             val *= exchange_rates[assets_doc.assetsCurrency];
         }
 
-        const result_key = `${person_key}.${assets_doc.objectType_encoded}.${assets_doc.is_foreign}.${curr_key}`;
-        if (result_key in result_dict)
-            result_dict[result_key] += val;
-        else
-            result_dict[result_key] = val;
+        if (assets_doc.person == '1')
+            declarant_assets += val;
+        else if (String(assets_doc.person) in (doc.step_2 || {}))
+            family_assets += val;
+        total_assets += val;
     }
 
-    for (let key in result_dict)
-        emit([doc._id].concat(key.split('.')), result_dict[key]);
+    emit([doc._id], [declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
 }

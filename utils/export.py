@@ -11,13 +11,22 @@ logger.setLevel(logging.INFO)
 
 # TODO: possibly take this as an argument in some form
 HEADER_MAP = {
-    'step_3_estate': ['id', 'person', 'type', 'same_year', 'foreign', 'ownership', 'quant', 'space', 'max_space',
-                      'cost_purch', 'cost_last'],
-    'step_6_vehicles': ['id', 'person', 'type', 'same_year', 'ownership', 'quant', 'cost', 'max_cost', 'max_year',
-                        'brand_models'],
-    'step_11_incomes': ['id', 'income.person', 'income.type', 'income.foreign', 'income.value.hidden', 'income.value'],
-    'step_12_assets': ['id', 'person', 'type', 'foreign', 'currency', 'value'],
-    'meta': ['id', 'link', 'name', 'work_post', 'work_place', 'year', 'name_post', 'family', 'organization_group',
+    'step_3_estate': ['id', 'estate.person', 'estate.type', 'estate.same_year', 'estate.foreign', 'estate.ownership',
+                      'estate.quant', 'estate.space', 'estate.max_space', 'estate.cost_purch', 'estate.cost_last'],
+    'step_3_estate_agg': ['id', 'estate.declarant_land', 'estate.declarant_other', 'estate.family_land',
+                          'estate.family_other', 'estate.total_land', 'estate.has_hidden', 'estate_has_foreign'],
+    'step_6_vehicles': ['id', 'vehicles.person', 'vehicles.type', 'vehicles.same_year', 'vehicles.ownership',
+                        'vehicles.quant', 'vehicles.cost', 'vehicles.max_cost', 'vehicles.max_year',
+                        'vehicles.brand_models'],
+    'step_6_vehicles_agg': ['id', 'vehicles.declarant_cost', 'vehicles.family_cost', 'vehicles.total_cost',
+                            'vehicles.max_year', 'vehicles.has_hidden', 'vehicles.all_names'],
+    'step_11_incomes': ['id', 'income.person', 'income.type', 'income.foreign', 'income.value'],
+    'step_11_incomes_agg': ['id', 'incomes.declarant', 'incomes.family', 'incomes.total', 'incomes.has_hidden',
+                            'incomes.has_foreign'],
+    'step_12_assets': ['id', 'assets.person', 'assets.type', 'assets.foreign', 'assets.currency', 'assets.value'],
+    'step_12_assets_agg': ['id', 'assets.declarant', 'assets.family', 'assets.total', 'assets.has_hidden',
+                           'assets.has_foreign'],
+    'meta': ['id', 'link', 'name', 'year', 'name_post', 'family', 'organization_group',
              'region']
 }
 

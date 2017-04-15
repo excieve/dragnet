@@ -1,1 +1,2 @@
 cloudant==2.4.0
+pandas==0.19.2
