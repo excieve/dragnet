@@ -23,5 +23,5 @@ if __name__ == '__main__':
         # TODO: maybe modify to use other kinds of merges if needed in future
         current_input = current_input.merge(next_input, on=args.field, how='left', sort=False)
         logger.info('Merged file "{}"'.format(input_file))
-    current_input.to_csv(args.output, index=False, na_rep='n/a')
+    current_input.to_csv(args.output, index=False, na_rep='null')
     logger.info('Merged output wrote to file "{}"'.format(args.output))
