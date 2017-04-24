@@ -13,6 +13,8 @@
         const income_doc = doc.step_11[key];
         if (typeof(income_doc) != 'object')
             continue;
+        if (income_doc.sizeIncome === undefined)
+            continue;
         if (income_doc.is_foreign == true)
             has_foreign = true;
         if (income_doc.sizeIncome_hidden) {

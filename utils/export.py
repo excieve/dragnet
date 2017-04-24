@@ -20,7 +20,7 @@ HEADER_MAP = {
                         'vehicles.quant', 'vehicles.cost', 'vehicles.max_cost', 'vehicles.max_year',
                         'vehicles.brand_models'],
     'step_6_vehicles_agg': ['id', 'vehicles.declarant_cost', 'vehicles.family_cost', 'vehicles.total_cost',
-                            'vehicles.max_year', 'vehicles.has_hidden', 'vehicles.all_names'],
+                            'vehicles.max_year', 'vehicles.has_hidden', 'vehicles.all_names', 'vehicles.any'],
     'step_11_incomes': ['id', 'income.person', 'income.type', 'income.foreign', 'income.value'],
     'step_11_incomes_agg': ['id', 'incomes.declarant', 'incomes.family', 'incomes.total', 'incomes.has_hidden',
                             'incomes.has_foreign'],

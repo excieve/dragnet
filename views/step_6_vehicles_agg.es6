@@ -9,14 +9,16 @@
         total_cost = 0.0,
         max_year = 0,
         all_names = '',
-        has_hidden = true,
+        has_hidden = false,
         seen_family_vehicles = new Set(),
         seen_all_vehicles = new Set();
     for (let key in doc.step_6) {
         const vehicle_doc = doc.step_6[key];
         if (typeof(vehicle_doc) != 'object')
             continue;
-        if (vehicle_doc.costDate_hidden || vehicle_doc.graduationYear_hidden)
+        if (vehicle_doc.costDate === undefined)
+            continue;
+        if (!vehicle_doc.brand || !vehicle_doc.model)
             has_hidden = true;
 
         const vehicle_key = `${vehicle_doc.brand}.${vehicle_doc.model}.${vehicle_doc.graduationYear}`;
@@ -42,5 +44,6 @@
     }
     all_names = all_names.slice(0, -1); // Remove last ";"
 
-    emit([doc._id], [declarant_cost, family_cost, total_cost, max_year, has_hidden, all_names]);
+    emit([doc._id], [declarant_cost, family_cost, total_cost, max_year || '!немає даних', has_hidden, all_names,
+                     seen_all_vehicles.size > 0]);
 }

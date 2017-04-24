@@ -18,6 +18,8 @@
         const estate_doc = doc.step_3[key];
         if (typeof(estate_doc) != 'object')
             continue;
+        if (estate_doc.totalArea === undefined)
+            continue;
         if (estate_doc.country != '1')
             has_foreign = true;
         if (estate_doc.totalArea_hidden) {

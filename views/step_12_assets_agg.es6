@@ -48,6 +48,9 @@
         const assets_doc = doc.step_12[key];
         if (typeof(assets_doc) != 'object')
             continue;
+        // Sometimes there's just broken JSON
+        if (assets_doc.sizeAssets === undefined)
+            continue;
         if (assets_doc.is_foreign == true)
             has_foreign = true;
         if (assets_doc.sizeAssets_hidden) {

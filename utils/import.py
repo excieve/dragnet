@@ -65,6 +65,11 @@ def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
             del parent[key][field]
 
 
+def is_empty_list(step):
+    # Because reasons
+    return isinstance(step, list) and (len(step) == 0 or len(step[0]) == 0)
+
+
 def transform_bad_list(data, key_field):
     # Some parts of the dataset are odd-looking lists instead of dicts as in majority of cases
     result = {}
@@ -94,51 +99,63 @@ def preprocess_doc(doc):
         else:
             step_1['organization_group'] = mappings.EMPTY_MARKER
     step_11 = doc.get('step_11', None)
-    for key in iterate_ugly_dict(step_11):
-        normalise_numerical(doc['_id'], step_11, key, 'sizeIncome')
-        normalise_empty(step_11, key, 'objectType')
-        normalise_empty(step_11, key, 'incomeSource')
-        encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING,
-                          new_field='objectType_encoded')
-        encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+    if is_empty_list(step_11):
+        del doc['step_11']
+    else:
+        for key in iterate_ugly_dict(step_11):
+            normalise_numerical(doc['_id'], step_11, key, 'sizeIncome')
+            normalise_empty(step_11, key, 'objectType')
+            normalise_empty(step_11, key, 'incomeSource')
+            encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING,
+                              new_field='objectType_encoded')
+            encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
-    for key in iterate_ugly_dict(step_6):
-        normalise_numerical(doc['_id'], step_6, key, 'costDate')
-        normalise_numerical(doc['_id'], step_6, key, 'graduationYear')
-        normalise_empty(step_6, key, 'objectType')
-        encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING,
-                          new_field='objectType_encoded')
-        rights = step_6[key].get('rights', None)
-        if isinstance(rights, list):
-            rights = transform_bad_list(rights, 'rightBelongs')
-            step_6[key]['rights'] = rights
-        for right_key in iterate_ugly_dict(rights):
-            normalise_empty(rights, right_key, 'ownershipType')
-            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
-                              new_field='ownershipType_encoded')
+    if is_empty_list(step_6):
+        del doc['step_6']
+    else:
+        for key in iterate_ugly_dict(step_6):
+            normalise_numerical(doc['_id'], step_6, key, 'costDate')
+            normalise_numerical(doc['_id'], step_6, key, 'graduationYear')
+            normalise_empty(step_6, key, 'objectType')
+            encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING,
+                              new_field='objectType_encoded')
+            rights = step_6[key].get('rights', None)
+            if isinstance(rights, list):
+                rights = transform_bad_list(rights, 'rightBelongs')
+                step_6[key]['rights'] = rights
+            for right_key in iterate_ugly_dict(rights):
+                normalise_empty(rights, right_key, 'ownershipType')
+                encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
+                                  new_field='ownershipType_encoded')
     step_3 = doc.get('step_3', None)
-    for key in iterate_ugly_dict(step_3):
-        normalise_numerical(doc['_id'], step_3, key, 'costDate')
-        normalise_numerical(doc['_id'], step_3, key, 'costAssessment')
-        normalise_numerical(doc['_id'], step_3, key, 'totalArea')
-        normalise_empty(step_3, key, 'objectType')
-        encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING,
-                          new_field='objectType_encoded')
-        rights = step_3[key].get('rights', None)
-        if isinstance(rights, list):
-            rights = transform_bad_list(rights, 'rightBelongs')
-            step_3[key]['rights'] = rights
-        for right_key in iterate_ugly_dict(rights):
-            normalise_empty(rights, right_key, 'ownershipType')
-            encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
-                              new_field='ownershipType_encoded')
+    if is_empty_list(step_3):
+        del doc['step_3']
+    else:
+        for key in iterate_ugly_dict(step_3):
+            normalise_numerical(doc['_id'], step_3, key, 'costDate')
+            normalise_numerical(doc['_id'], step_3, key, 'costAssessment')
+            normalise_numerical(doc['_id'], step_3, key, 'totalArea')
+            normalise_empty(step_3, key, 'objectType')
+            encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING,
+                              new_field='objectType_encoded')
+            rights = step_3[key].get('rights', None)
+            if isinstance(rights, list):
+                rights = transform_bad_list(rights, 'rightBelongs')
+                step_3[key]['rights'] = rights
+            for right_key in iterate_ugly_dict(rights):
+                normalise_empty(rights, right_key, 'ownershipType')
+                encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
+                                  new_field='ownershipType_encoded')
     step_12 = doc.get('step_12', None)
-    for key in iterate_ugly_dict(step_12):
-        normalise_numerical(doc['_id'], step_12, key, 'sizeAssets')
-        normalise_empty(step_12, key, 'objectType')
-        encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING,
-                          new_field='objectType_encoded')
-        encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+    if is_empty_list(step_12):
+        del doc['step_12']
+    else:
+        for key in iterate_ugly_dict(step_12):
+            normalise_numerical(doc['_id'], step_12, key, 'sizeAssets')
+            normalise_empty(step_12, key, 'objectType')
+            encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING,
+                              new_field='objectType_encoded')
+            encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     return doc
 
 
