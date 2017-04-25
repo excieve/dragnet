@@ -47,6 +47,8 @@
         const assets_doc = doc.step_12[key];
         if (typeof(assets_doc) != 'object')
             continue;
+        if (assets_doc.sizeAssets === undefined)
+            continue;
         if (assets_doc.sizeAssets_hidden)
             continue;
 

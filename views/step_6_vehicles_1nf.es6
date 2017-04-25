@@ -10,6 +10,8 @@
         const vehicle_doc = doc.step_6[key];
         if (typeof(vehicle_doc) != 'object')
             continue;
+        if (vehicle_doc.costDate === undefined)
+            continue;
         if (!vehicle_doc.rights)
             continue;
         if (vehicle_doc.costDate_hidden && vehicle_doc.graduationYear_hidden)
@@ -33,10 +35,12 @@
             if (!right || typeof(right) != 'object')
                 continue;
             // We only want to account for the vehicle once per owner, so excluding usage rights and co-ownership by others
-            if (right.rightBelongs != vehicle_doc.person && right.rightBelongs != 'j')
-                continue;
-            if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
-                continue;
+            if (person_key != 'd' || vehicle_doc.rights.length != 1) {
+                if (right.rightBelongs != vehicle_doc.person && right.rightBelongs != 'j')
+                    continue;
+                if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
+                    continue;
+            }
             const ownership = `.${right.ownershipType_encoded}`;
             for (let result_key of [per_person_key, all_key]) {
                 result_key += ownership;
@@ -55,6 +59,8 @@
         }
     }
 
-    for (let key in result_dict)
+    for (let key in result_dict) {
+        result_dict[key][4] = result_dict[key][4].slice(0, -1);
         emit([doc._id].concat(key.split('.')), result_dict[key]);
+    }
 }

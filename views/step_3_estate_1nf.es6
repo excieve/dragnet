@@ -10,6 +10,8 @@
         const estate_doc = doc.step_3[key];
         if (typeof(estate_doc) != 'object')
             continue;
+        if (estate_doc.totalArea === undefined)
+            continue;
         if (!estate_doc.rights)
             continue;
         if (estate_doc.totalArea_hidden && estate_doc.costDate_hidden && estate_doc.costAssessment_hidden)
@@ -34,10 +36,12 @@
             if (!right)
                 continue;
             // We only want to account for the estate once per owner, so excluding usage rights and co-ownership by others
-            if (right.rightBelongs != estate_doc.person && right.rightBelongs != 'j')
-                continue;
-            if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
-                continue;
+            if (person_key != 'd' || estate_doc.rights.length != 1) {
+                if (right.rightBelongs != estate_doc.person && right.rightBelongs != 'j')
+                    continue;
+                if (right.rightBelongs == 'j' && right.ownershipType_encoded == 'comproperty')
+                    continue;
+            }
             const ownership = `.${right.ownershipType_encoded}`;
             for (let result_key of [per_person_key, all_key]) {
                 result_key += ownership;
