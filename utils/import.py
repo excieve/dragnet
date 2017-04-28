@@ -29,13 +29,13 @@ def iterate_ugly_dict(parent):
 def normalise_numerical(doc_id, parent, key, field):
     # Normalize numerical values to floats
     try:
-        parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.') or 0)
-        parent[key]['{}_hidden'.format(field)] = 0
+        parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.'))
+        parent[key]['{}_hidden'.format(field)] = False
     except Exception:
         logger.info('Wrong "{}" field value for doc ID {}: {}'
                     .format(field, doc_id, parent[key].get(field)))
         parent[key][field] = 0
-        parent[key]['{}_hidden'.format(field)] = 1
+        parent[key]['{}_hidden'.format(field)] = True
 
 
 def normalise_empty(parent, key, field):

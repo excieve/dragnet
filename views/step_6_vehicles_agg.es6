@@ -18,7 +18,7 @@
             continue;
         if (vehicle_doc.costDate === undefined)
             continue;
-        if (!vehicle_doc.brand || !vehicle_doc.model)
+        if (!vehicle_doc.brand && !vehicle_doc.model)
             has_hidden = true;
 
         const vehicle_key = `${vehicle_doc.brand}.${vehicle_doc.model}.${vehicle_doc.graduationYear}`;
