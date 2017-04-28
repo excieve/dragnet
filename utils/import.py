@@ -65,9 +65,10 @@ def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
             del parent[key][field]
 
 
-def is_empty_list(step):
+def is_empty_step(step):
     # Because reasons
-    return isinstance(step, list) and (len(step) == 0 or len(step[0]) == 0)
+    return (isinstance(step, list) and (len(step) == 0 or len(step[0]) == 0)) or\
+           (isinstance(step, dict) and 'empty' in step)
 
 
 def transform_bad_list(data, key_field):
@@ -99,7 +100,7 @@ def preprocess_doc(doc):
         else:
             step_1['organization_group'] = mappings.EMPTY_MARKER
     step_11 = doc.get('step_11', None)
-    if is_empty_list(step_11):
+    if is_empty_step(step_11):
         del doc['step_11']
     else:
         for key in iterate_ugly_dict(step_11):
@@ -110,7 +111,7 @@ def preprocess_doc(doc):
                               new_field='objectType_encoded')
             encode_booleans(step_11, key, 'source_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
     step_6 = doc.get('step_6', None)
-    if is_empty_list(step_6):
+    if is_empty_step(step_6):
         del doc['step_6']
     else:
         for key in iterate_ugly_dict(step_6):
@@ -128,7 +129,7 @@ def preprocess_doc(doc):
                 encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
                                   new_field='ownershipType_encoded')
     step_3 = doc.get('step_3', None)
-    if is_empty_list(step_3):
+    if is_empty_step(step_3):
         del doc['step_3']
     else:
         for key in iterate_ugly_dict(step_3):
@@ -147,7 +148,7 @@ def preprocess_doc(doc):
                 encode_categories(rights, right_key, 'ownershipType', mappings.PROPERTY_TYPE_MAPPING,
                                   new_field='ownershipType_encoded')
     step_12 = doc.get('step_12', None)
-    if is_empty_list(step_12):
+    if is_empty_step(step_12):
         del doc['step_12']
     else:
         for key in iterate_ugly_dict(step_12):
