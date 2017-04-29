@@ -8,7 +8,11 @@
           full_name = `${doc.step_1.lastname} ${doc.step_1.firstname} ${doc.step_1.middlename}`,
           name_post = `${full_name}, ${doc.step_1.workPost}, ${doc.step_1.workPlace}`,
           has_family = typeof(doc.step_2) == 'object' && !Array.isArray(doc.step_2) && !('empty' in doc.step_2);
+    // Quick fix to have a little less categories
+    let mapped_region = doc.mapped_region;
+    if (mapped_region == 'Севастополь')
+        mapped_region = 'Кримська Автономна Республіка';
     emit(doc._id,
          [dcu_link, full_name, doc.step_0.declarationYear1, name_post,
-          has_family, doc.step_1.organization_group, doc.mapped_region]);
+          has_family, doc.step_1.organization_group, mapped_region]);
 }

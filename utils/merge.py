@@ -53,8 +53,9 @@ if __name__ == '__main__':
         current_input = current_input.merge(next_input, on=args.field, how='left', sort=False)
         logger.info('Merged file "{}"'.format(input_file))
     # TODO: Make this configurable, think about generalised configs in fact
-    logger.info('Replacing NaNs with predefined values')
+    logger.info('Filtering out irrelevant years')
     current_input = current_input[current_input['year'].isin([2015, 2016])]
+    logger.info('Replacing NaNs with predefined values')
     for column, dtype in current_input.dtypes.items():
         col_replacement = NAN_REPLACEMENTS['columns'].get(column, None)
         if not col_replacement:

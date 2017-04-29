@@ -32,8 +32,10 @@ def normalise_numerical(doc_id, parent, key, field):
         parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.'))
         parent[key]['{}_hidden'.format(field)] = False
     except Exception:
-        logger.info('Wrong "{}" field value for doc ID {}: {}'
-                    .format(field, doc_id, parent[key].get(field)))
+        value = parent[key].get(field)
+        if value:
+            logger.info('Wrong "{}" field value for doc ID {}: {}'
+                        .format(field, doc_id, value))
         parent[key][field] = 0
         parent[key]['{}_hidden'.format(field)] = True
 
@@ -157,6 +159,27 @@ def preprocess_doc(doc):
             encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
             encode_booleans(step_12, key, 'organization_type', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+
+    step_13 = doc.get('step_13', None)
+    if is_empty_step(step_13):
+        del doc['step_13']
+    else:
+        for key in iterate_ugly_dict(step_13):
+            normalise_numerical(doc['_id'], step_13, key, 'sizeObligation')
+            normalise_empty(step_13, key, 'objectType')
+            encode_categories(step_13, key, 'objectType', mappings.LIABILITY_OBJECT_TYPE_MAPPING,
+                              new_field='objectType_encoded')
+            encode_booleans(step_13, key, 'emitent_citizen', 'is_foreign', mappings.FOREIGN_SOURCE_TAGS)
+
+    step_14 = doc.get('step_14', None)
+    if is_empty_step(step_14):
+        del doc['step_14']
+    else:
+        for key in iterate_ugly_dict(step_14):
+            normalise_numerical(doc['_id'], step_14, key, 'costAmount')
+            normalise_empty(step_14, key, 'specExpenses')
+            encode_categories(step_14, key, 'specExpenses', mappings.EXPENSE_SPEC_MAPPING,
+                              new_field='specExpenses_encoded')
     return doc
 
 
