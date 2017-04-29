@@ -130,21 +130,19 @@
         "GHS": 6.359669778
     }
     const luxury_car_names = [
-        'lexus', 'porsche', 'bentley flying spur', 'bentley mulsanne', 'cadillac ct6', 'lexus ls',
-        'mercedes benz s class coupe', 'rolls royce phantom', 'rolls royce ghost', 'tesla model s',
-        'aston martin vantage', 'aston martin vulcan', 'audi r8', 'ferrari 812 superfast', 'jaguar f type',
-        'mclaren 570s', 'nissan gt r', 'aston martin vanquish volante', 'ford mustang convertible',
-        'porsche 911 cabriolet', 'audi tt roadster', 'honda s660', 'mercedes benz slk class', 'nissan 370z roadster',
-        'infiniti', 'aston martin rapide', 'bentley continental gt', 'bmw 6 series gran coupe', 'genesis g90',
-        'maserati quattroporte', 'mercedes benz s class convertible', 'rolls royce phantom coupe', 'rolls royce wraith',
-        'volkswagen phideon', 'aston martin db11', 'aston martin valkyrie', 'bmw i8', 'ford mustang', 'lexus lc',
-        'mercedes amg gt', 'porsche 911', 'ferrari 488 spider', 'maserati grancabrio', 'alfa romeo 4c spider',
-        'audi r8 spyder', 'jaguar f type convertible', 'mercedes benz sl class', 'acura', 'audi a8',
-        'bentley continental gtc', 'bmw 7 series', 'jaguar xj', 'mercedes benz s class', 'porsche panamera',
-        'rolls royce phantom drophead coupe', 'rolls royce dawn', 'alfa romeo 4c', 'aston martin vanquish', 'audi tt',
-        'ferrari 488', 'hyundai veloster', 'maserati granturismo', 'nissan 370z', 'toyota 86', 'ferrari california t',
-        'porsche 911 targa', 'aston martin vantage roadster', 'fiat 124 spider', 'mazda mx 5',
-        'mercedes amg gt roadster'
+        'acura', 'alfa romeo 4c', 'alfa romeo 4c spider', 'aston martin', 'audi a8', 'audi r8', 'audi tt', 'bentley',
+        'bmw 6', 'bmw 7', 'bmw 8', 'cadillac', 'ferrari', 'fiat 124 spider', 'ford mustang', 'genesis g90',
+        'honda s660', 'hyundai veloster', 'infiniti', 'jaguar', 'lexus', 'maserati', 'mazda mx 5', 'mclaren 570s',
+        'mercedes amg gt', 'mercedes benz s class', 'mercedes benz sl class', 'mercedes benz slk class', 'nissan 370z',
+        'nissan gt r', 'porsche', 'rolls royce', 'tesla model s', 'toyota 86', 'volkswagen phideon', 'акура',
+        'альфа ромео 4с', 'альфа ромео 4с спайдер', 'астон мартин', 'астон мартін', 'ауди а8', 'ауди р8', 'ауди тт',
+        'ауді а8', 'ауді р8', 'ауді тт', 'бентли', 'бентлі', 'бмв 6', 'бмв 7', 'бмв 8', 'дженезис г90', 'дженезіс г90',
+        'инфинити', 'інфініті', 'кадилак', 'кадиллак', 'каділак', 'каділлак', 'лексус', 'мазда мх5', 'мазерати',
+        'мазераті', 'макларен 570с', 'мерседес амг гт', 'мерседес бенц с клас', 'мерседес бенц сл клас',
+        'мерседес бенц слк клас', 'ниссан 370з', 'ниссан гт р', 'ніссан 370з', 'ніссан гт р', 'порш', 'порше',
+        'роллс ройс', 'тесла модел с', 'тесла модель с', 'тойота 86', 'ферари', 'ферарі', 'феррари', 'феррарі',
+        'фиат 124 спайдер', 'фіат 124 спайдер', 'фольксваген фидеон', 'фольксваген фідеон', 'форд мустанг',
+        'хонда с660', 'хюндаи велостер', 'хюндаі велостер', 'хюндай велостер', 'ягуар'
     ];
     const present_types = ['presentnomoney', 'presentmoney', 'charity', 'prize'],
           ownership_types = ['ownproperty', 'comproperty'];
@@ -186,7 +184,7 @@
             const right = subdoc.rights[right_key];
             if (!right)
                 continue;
-            if (right.ownershipType_encoded in ownership_types) {
+            if (ownership_types.indexOf(right.ownershipType_encoded) != -1) {
                 return true;
             }
         }
@@ -268,7 +266,7 @@
                 continue;
             if (income_doc.sizeIncome === undefined)
                 continue;
-            if (income_doc.objectType_encoded in present_types)
+            if (present_types.indexOf(income_doc.objectType_encoded) != -1)
                 total_presents += income_doc.sizeIncome;
             total_income += income_doc.sizeIncome;
         }
