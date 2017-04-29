@@ -210,7 +210,7 @@
             if (typeof(estate_doc) != 'object')
                 continue;
             if (!isOwned(estate_doc))
-                break;
+                continue;
 
             switch (estate_doc.objectType_encoded) {
                 case 'garage':
@@ -236,7 +236,7 @@
             if (typeof(vehicle_doc) != 'object')
                 continue;
             if (!isOwned(vehicle_doc))
-                break;
+                continue;
             has_vehicle = true;
 
             const owning_date = vehicle_doc.owningDate.split('.');
