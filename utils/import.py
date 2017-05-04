@@ -190,12 +190,15 @@ def import_batch(docs, db_config):
     for d in docs:
         if d:
             doc_object = json.loads(d)
-            source = doc_object['_source']['nacp_orig']
-            source.update({
-                '_id': doc_object['_id'],
-                'mapped_region': doc_object['_source']['general']['post']['region']
-            })
-            docs_objects.append(preprocess_doc(source))
+            # Only import those declarations we know don't have any further corrections for that year
+            # NOTE: due to a bug upstream the relations are currently inverted
+            if not doc_object['_source'].get('original_declarations', []):
+                source = doc_object['_source']['nacp_orig']
+                source.update({
+                    '_id': doc_object['_id'],
+                    'mapped_region': doc_object['_source']['general']['post']['region']
+                })
+                docs_objects.append(preprocess_doc(source))
     imported = 0
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
