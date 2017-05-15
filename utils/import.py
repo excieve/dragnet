@@ -191,8 +191,7 @@ def import_batch(docs, db_config):
         if d:
             doc_object = json.loads(d)
             # Only import those declarations we know don't have any further corrections for that year
-            # NOTE: due to a bug upstream the relations are currently inverted
-            if not doc_object['_source'].get('original_declarations', []):
+            if not doc_object['_source'].get('corrected_declarations', []):
                 source = doc_object['_source']['nacp_orig']
                 source.update({
                     '_id': doc_object['_id'],
