@@ -1,4 +1,4 @@
 #!/bin/bash
 
-python3 utils/merge.py ~/workspace/meta_1M_upd.csv ~/workspace/red_flags_1M.csv ~/workspace/step_11_incomes_agg.csv ~/workspace/step_12_assets_agg.csv ~/workspace/step_3_estate_agg.csv ~/workspace/step_6_vehicles_agg.csv -o ~/workspace/dragnet_humble_with_flags_corrected.csv
+python3.5 utils/merge.py data/export/meta_1M_upd.csv data/export/red_flags_1M.csv data/export/step_11_incomes_agg.csv data/export/step_12_assets_agg.csv data/export/step_3_estate_agg.csv data/export/step_6_vehicles_agg.csv -o data/export/dragnet_humble_with_flags.csv
 

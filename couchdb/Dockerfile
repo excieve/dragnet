@@ -6,12 +6,12 @@ RUN apt-get update -y -qq && apt-get install -y -t jessie-backports clang-3.8 cm
 WORKDIR /usr/src
 RUN curl -fSL https://github.com/Microsoft/ChakraCore/archive/cb7817bda7e4b265e7a7364641123e20204facfd.zip -o ChakraCore.zip &&\
     unzip ChakraCore.zip &&\
-    curl -fSL https://github.com/dmunch/couch-chakra/archive/dmunch-unicode-issues.zip -o couch-chakra-unicode.zip &&\
+    curl -fSL https://github.com/dmunch/couch-chakra/archive/0c89ae7abe1a9e34aff54870540f7d3930a5671f.zip -o couch-chakra-unicode.zip &&\
     unzip couch-chakra-unicode.zip
 WORKDIR /usr/src/ChakraCore-cb7817bda7e4b265e7a7364641123e20204facfd
 RUN ./build.sh -j 4 --cxx=/usr/bin/clang++-3.8 --cc=/usr/bin/clang-3.8 &&\
     cp BuildLinux/Release/libChakraCore.so /usr/lib/
-WORKDIR /usr/src/couch-chakra-dmunch-unicode-issues
+WORKDIR /usr/src/couch-chakra-0c89ae7abe1a9e34aff54870540f7d3930a5671f
 RUN apt-get install -y vim-common
 RUN make CHAKRA_INCLUDE_DIR="/usr/src/ChakraCore-cb7817bda7e4b265e7a7364641123e20204facfd/lib/Jsrt/" CHAKRA_LD_FLAGS="-L/usr/lib -lChakraCore" &&\
     mkdir /opt/couch-chakra && cp bin/couch-chakra /opt/couch-chakra/ &&\

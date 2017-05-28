@@ -63,6 +63,7 @@ if __name__ == '__main__':
         df[column].fillna(col_replacement, inplace=True)
 
     # TODO: Generalise outliers
+    df['outlier'] = False
     q1 = ((df['incomes.total'] > 100000000) | (df['estate.total_other'] > 5000))\
         & (df['name_post'].str.contains('депутат', case=False))
     q2 = (df['estate.total_land'] > 20000000)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         'nacp_08a63d8b-2db4-4ef0-8b8b-396e0cd9f495',
         'nacp_7762d918-fe93-4285-8703-7fbe18312634',
         'nacp_50a32d11-ebfa-4466-9bde-2f049cb00574']))
-    df['outlier'][(q1 | q2 | q3 | q4 | q5) & excl] = True
+    df.loc[(q1 | q2 | q3 | q4 | q5) & excl, 'outlier'] = True
 
     df.to_csv(args.output, index=False, na_rep='null')
     logger.info('Merged output wrote to file "{}"'.format(args.output))

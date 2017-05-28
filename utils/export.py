@@ -31,8 +31,8 @@ HEADER_MAP = {
              'region'],
     'red_flags': ['id', 'assets_to_income_flag', 'income_presents_to_total_flag', 'expenses_to_inc_and_assets_flag',
                   'liabilities_to_inc_and_assets_flag', 'cash_flag', 'garage_wo_car_flag', 'house_no_land_flag',
-                  'lux_cars_flag', 'vehicle_purch_no_cost_flag', 'estate_purch_no_cost_flag', 'expenses.total',
-                  'liabilities.total', 'assets.cash.total', 'incomes.presents.all']
+                  'lux_cars_flag', 'lux_cars_flag_v2', 'vehicle_purch_no_cost_flag', 'estate_purch_no_cost_flag',
+                  'expenses.total', 'liabilities.total', 'assets.cash.total', 'incomes.presents.all']
 }
 
 
