@@ -20,7 +20,7 @@ def runner(profile, db_config):
         logger.info('Processing design document "{}":'.format(design_doc['name']))
         for view in design_doc['views']:
             view_name = os.path.splitext(os.path.basename(view))[0]
-            logger.info('Loading and executing view "{}".'.format(view_name))
+            logger.info('Loading and executing view "{}"...'.format(view_name))
             map_function_source, _ = load_source(view)
             func_db_config = {
                 'design_doc': design_doc['name'],
@@ -38,7 +38,7 @@ def exporter(profile, db_config):
     logger.info('Executing exporters...')
     for mapping in exporter_profile['mappings']:
         design_doc, view = mapping['view'].split('.')
-        export_view(profile['output'], design_doc, view, db_config, mapping.get('columns'))
+        export_view(mapping['output'], design_doc, view, db_config, mapping.get('columns'))
 
 
 def merger(profile):
@@ -49,6 +49,7 @@ def merger(profile):
     # Load and exec a Python module containing the Pandas filters
     filter_func = None
     if merger_profile.get('outlier_filters'):
+        logger.info('Loading Pandas filters for outlier detection.')
         spec = importlib.util.spec_from_file_location('outlier_filters', merger_profile['outlier_filters'])
         outlier_filters = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(outlier_filters)
@@ -60,7 +61,7 @@ def merger(profile):
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logger.setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(description='Execute a Dragnet profile')
     parser.add_argument('action', help='Action to execute (use "all" to sequentially perform every action)',
@@ -72,9 +73,9 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--endpoint', help='CouchDB endpoint', default='http://localhost:5984')
     args = parser.parse_args()
 
-    with open(args.profile, 'r', encoding='utf-8') as fp:
+    with open('{}/profiles/{}.json'.format(args.datadir, args.profile), 'r', encoding='utf-8') as fp:
         raw_json = fp.read()
-        profile = json.loads(raw_json.format(datadir=args.datadir))
+        profile = json.loads(raw_json.replace('{datadir}', args.datadir))
 
     db_config = {
         'user': args.username,
@@ -91,3 +92,5 @@ if __name__ == '__main__':
         exporter(profile, db_config)
     if args.action in ('all', 'merger'):
         merger(profile)
+
+    logger.info('Profiles execution complete.')

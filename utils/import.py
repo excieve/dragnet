@@ -238,7 +238,7 @@ def import_all(docs_file, db_config, concurrency, chunks_per_process):
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logger.setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(description='Import documents from ElasticSearch-like dump to CouchDB')
     parser.add_argument('docs_file', help='Documents file')

@@ -129,7 +129,7 @@ def add_function(map_function_source, reduce_function_source, db_config, languag
 
 if __name__ == '__main__':
     logging.basicConfig()
-    logger.setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(description='Adds a MapReduce view to CouchDB database design doc')
     parser.add_argument('mapfile', help='File containing the map function source')
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     db_config = {
         'user': args.username,

@@ -27,12 +27,12 @@
         "mappings": [
             {
                 "view": "meta.meta",
-                "output": "{datadir}/output/meta.csv",
+                "output": "{datadir}/export/meta.csv",
                 "columns": ["id", "link", "name", "year", "name_post", "family", "organization_group", "region"]
             },
             {
                 "view": "aggregated.step_3_estate",
-                "output": "{datadir}/output/step_3_estate_agg.csv",
+                "output": "{datadir}/export/step_3_estate_agg.csv",
                 "columns": [
                     "id", "estate.declarant_land", "estate.declarant_other", "estate.family_land",
                     "estate.family_other", "estate.total_land", "estate.total_other", "estate.has_hidden",
@@ -41,7 +41,7 @@
             },
             {
                 "view": "aggregated.step_6_vehicles",
-                "output": "{datadir}/output/step_6_vehicles_agg.csv",
+                "output": "{datadir}/export/step_6_vehicles_agg.csv",
                 "columns": [
                     "id", "vehicles.declarant_cost", "vehicles.family_cost", "vehicles.total_cost",
                     "vehicles.max_year", "vehicles.has_hidden", "vehicles.all_names", "vehicles.any"
@@ -49,7 +49,7 @@
             },
             {
                 "view": "aggregated.step_11_incomes",
-                "output": "{datadir}/output/step_11_incomes_agg.csv",
+                "output": "{datadir}/export/step_11_incomes_agg.csv",
                 "columns": [
                     "id", "incomes.declarant", "incomes.family", "incomes.total", "incomes.has_hidden",
                     "incomes.has_foreign"
@@ -57,18 +57,18 @@
             },
             {
                 "view": "aggregated.step_12_assets",
-                "output": "{datadir}/output/step_12_assets_agg.csv",
+                "output": "{datadir}/export/step_12_assets_agg.csv",
                 "columns": [
                     "id", "assets.declarant", "assets.family", "assets.total", "assets.has_hidden", "assets.has_foreign"
                 ]
             },
             {
                 "view": "red_flags.red_flags",
-                "output": "{datadir}/output/red_flags.csv",
+                "output": "{datadir}/export/red_flags.csv",
                 "columns": [
                     "id", "assets_to_income_flag", "income_presents_to_total_flag", "expenses_to_inc_and_assets_flag",
                     "liabilities_to_inc_and_assets_flag", "cash_flag", "garage_wo_car_flag", "house_no_land_flag",
-                    "lux_cars_flag", "lux_cars_flag_v2" "vehicle_purch_no_cost_flag", "estate_purch_no_cost_flag",
+                    "lux_cars_flag", "lux_cars_flag_v2", "vehicle_purch_no_cost_flag", "estate_purch_no_cost_flag",
                     "expenses.total", "liabilities.total", "assets.cash.total", "incomes.presents.all"
                 ]
             }
@@ -99,11 +99,11 @@
                 "vehicles.any": "False"
             }
         },
-        "output": "{datadir}/output/aggregated_with_flags.csv",
+        "output": "{datadir}/export/aggregated_with_flags.csv",
         "inputs": [
-            "{datadir}/output/meta.csv", "{datadir}/output/red_flags.csv", "{datadir}/output/step_3_estate_agg.csv",
-            "{datadir}/output/step_6_vehicles_agg.csv", "{datadir}/output/step_11_incomes_agg.csv",
-            "{datadir}/output/step_12_assets_agg.csv"
+            "{datadir}/export/meta.csv", "{datadir}/export/red_flags.csv", "{datadir}/export/step_3_estate_agg.csv",
+            "{datadir}/export/step_6_vehicles_agg.csv", "{datadir}/export/step_11_incomes_agg.csv",
+            "{datadir}/export/step_12_assets_agg.csv"
         ],
         "outlier_filters": "{datadir}/filters/outlier_agg_filter.py",
         "only_years": [2015, 2016]
