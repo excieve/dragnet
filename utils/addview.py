@@ -6,9 +6,7 @@ import time
 
 from cloudant import couchdb
 
-logging.basicConfig()
 logger = logging.getLogger('dragnet.addview')
-logger.setLevel(logging.INFO)
 
 
 def coffeescript(func):
@@ -24,7 +22,7 @@ def coffeescript(func):
     return output
 
 
-def load_source(mapfile_name, reducefile_name):
+def load_source(mapfile_name, reducefile_name=None):
     map_function_source = None
     with open(mapfile_name, 'r', encoding='utf-8') as f:
         map_function_source = f.read()
@@ -57,7 +55,7 @@ def process_source(map_function_source, reduce_function_source, language):
     return map_function_source, reduce_function_source, new_language
 
 
-def do_benchmark(couch, view):
+def execute_view(couch, view):
     # Call the view in order to launch the indexing process.
     # This is fire and forget as it will most likely timeout and we're not interested in the result anyway.
     proc = subprocess.Popen(['curl', '-s', '{}?limit=1&reduce=false'.format(view.url)],
@@ -107,7 +105,7 @@ def do_benchmark(couch, view):
         logger.info('No active tasks (not indexing).')
 
 
-def add_function(map_function_source, reduce_function_source, db_config, language, benchmark):
+def add_function(map_function_source, reduce_function_source, db_config, language, execute):
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         design_doc = db.get_design_document(db_config['design_doc'])
@@ -124,12 +122,15 @@ def add_function(map_function_source, reduce_function_source, db_config, languag
         design_doc.save()
         logger.info('Design doc successfully saved.')
         logger.debug(design_doc.info())
-        if benchmark:
+        if execute:
             view = design_doc.get_view(db_config['view'])
-            do_benchmark(couch, view)
+            execute_view(couch, view)
 
 
 if __name__ == '__main__':
+    logging.basicConfig()
+    logger.setLevel(logging.INFO)
+
     parser = argparse.ArgumentParser(description='Adds a MapReduce view to CouchDB database design doc')
     parser.add_argument('mapfile', help='File containing the map function source')
     parser.add_argument('-r', '--reducefile', help='File containing the reduce function source')

@@ -4,9 +4,7 @@ import csv
 
 from cloudant import couchdb
 
-logging.basicConfig()
 logger = logging.getLogger('dragnet.export')
-logger.setLevel(logging.INFO)
 
 
 # TODO: possibly take this as an argument in some form
@@ -46,20 +44,21 @@ def write_row(row, writer):
     writer.writerow(keys + values)
 
 
-def export_view(filename, db_config):
+def export_view(filename, design_doc_name, view_name, db_config, mappings=None):
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
-        design_doc = db.get_design_document(db_config['design_doc'])
-        view = design_doc.get_view(db_config['view'])
+        design_doc = db.get_design_document(design_doc_name)
+        view = design_doc.get_view(view_name)
 
-        logger.info('Found view "{}" in design doc "{}".'.format(view.view_name, db_config['design_doc']))
+        logger.info('Found view "{}" in design doc "{}".'.format(view.view_name, design_doc_name))
         first_result = view(stale='ok', limit=1)
         logger.info('This view contains {} rows, exporting...'.format(first_result['total_rows']))
 
         rows_exported = 0
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             view_writer = csv.writer(csvfile)
-            view_writer.writerow(HEADER_MAP[db_config['design_doc']])
+            if mappings:
+                view_writer.writerow(mappings)
             # Instead of using offsets and limits to get batches we're utilising B-Tree properly:
             # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
             # This scales very well as the DB never needs to scan over all the previous nodes.
@@ -80,6 +79,9 @@ def export_view(filename, db_config):
 
 
 if __name__ == '__main__':
+    logging.basicConfig()
+    logger.setLevel(logging.INFO)
+
     parser = argparse.ArgumentParser(description='Export document from CouchDB view to a CSV file')
     parser.add_argument('designdoc', help='Design document')
     parser.add_argument('view', help='View name')
@@ -99,4 +101,4 @@ if __name__ == '__main__':
         'view': args.view
     }
 
-    export_view(args.output, db_config)
+    export_view(args.output, args.designdoc, args.view, db_config, HEADER_MAP[args.designdoc])

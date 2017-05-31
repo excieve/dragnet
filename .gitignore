@@ -93,3 +93,5 @@ ENV/
 
 # NodeJS
 node_modules/
+
+data/export
