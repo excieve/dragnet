@@ -94,4 +94,6 @@ ENV/
 # NodeJS
 node_modules/
 
-data/export
+# Dragnet transient data
+data/export/
+data/import/

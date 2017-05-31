@@ -162,6 +162,7 @@
         jar_of_cash = false,
         garage_wo_car = false,
         has_luxury_cars = false,
+        has_luxury_cars_v2 = false,
         vehicle_purch_no_cost = false,
         estate_purch_no_cost = false,
         house_no_land = false;
@@ -254,7 +255,10 @@
                 for (let luxury_name of luxury_car_names) {
                     if (full_name.indexOf(luxury_name) != -1) {
                         has_luxury_cars = true;
-                        break;
+                        if (!vehicle_doc.graduationYear || vehicle_doc.graduationYear >= 2011) {
+                            has_luxury_cars_v2 = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -330,6 +334,6 @@
 
     emit([doc._id], [assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
                      liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
-                     vehicle_purch_no_cost, estate_purch_no_cost,
+                     has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost,
                      total_expenses, total_liabilities, total_cash, total_presents]);
 }
