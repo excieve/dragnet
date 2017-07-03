@@ -7,6 +7,7 @@ import os.path
 from addview import load_source, add_function
 from export import export_view
 from merge import merge_csv
+from pump import csv_to_elasticsearch
 
 logger = logging.getLogger('dragnet.profile')
 
@@ -59,18 +60,32 @@ def merger(profile):
               merger_profile.get('nan_replacements'), filter_func, merger_profile.get('only_years'))
 
 
+def pump(profile, es_endpoint):
+    pump_profile = profile['pump']
+    assert pump_profile['type'] == 'csv_to_elasticsearch', 'Unsupported merger type'
+
+    logger.info('Executing pump...')
+    es_config = {
+        'endpoint': es_endpoint,
+        'index': pump_profile['index'],
+        'doc_type': pump_profile['doc_type']
+    }
+    csv_to_elasticsearch(pump_profile['input'], pump_profile['match_field'], pump_profile['container_field'], es_config)
+
+
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser(description='Execute a Dragnet profile')
     parser.add_argument('action', help='Action to execute (use "all" to sequentially perform every action)',
-                        choices=['all', 'runner', 'exporter', 'merger'])
+                        choices=['all', 'runner', 'exporter', 'merger', 'pump'])
     parser.add_argument('profile', help='Profile to execute')
     parser.add_argument('-d', '--datadir', help='Data directory', default='data')
     parser.add_argument('-u', '--username', help='CouchDB username')
     parser.add_argument('-p', '--password', help='CouchDB password')
     parser.add_argument('-e', '--endpoint', help='CouchDB endpoint', default='http://localhost:5984')
+    parser.add_argument('-s', '--elasticsearch', help='ElasticSearch endpoint', default='http://localhost:9200')
     args = parser.parse_args()
 
     with open('{}/profiles/{}.json'.format(args.datadir, args.profile), 'r', encoding='utf-8') as fp:
@@ -92,5 +107,7 @@ if __name__ == '__main__':
         exporter(profile, db_config)
     if args.action in ('all', 'merger'):
         merger(profile)
+    if args.action in ('all', 'pump'):
+        pump(profile, args.elasticsearch)
 
     logger.info('Profiles execution complete.')

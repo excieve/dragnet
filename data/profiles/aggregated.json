@@ -107,5 +107,13 @@
         ],
         "outlier_filters": "{datadir}/filters/outlier_agg_filter.py",
         "only_years": [2015, 2016]
+    },
+    "pump": {
+        "type": "csv_to_elasticsearch",
+        "index": "nacp_declarations",
+        "doc_type": "n_a_c_p_declaration",
+        "match_field": "id",
+        "container_field": "aggregated",
+        "input": "{datadir}/export/aggregated_with_flags.csv"
     }
 }

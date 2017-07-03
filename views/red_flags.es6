@@ -1,8 +1,9 @@
 // Danger Zoooone
 (doc) => {
-    if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType)
+    const nacp_doc = doc.nacp_orig;
+    if (nacp_doc.step_0 ||nacp_doc.step_0.changesYear || nacp_doc.step_0.declarationType)
         return;
-    if (doc.step_0.declarationType != '1')
+    if (nacp_doc.step_0.declarationType != '1')
         return;
 
     // TODO: perhaps move this to a separate stored function with rates by year
@@ -197,7 +198,7 @@
         let val = amount;
         if (currency && currency != 'UAH') {
             let exchange_table = exchange_rates_2015;
-            if (doc.step_0.declarationYear1 == '2016')
+            if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
             if (!(currency in exchange_table))
                 return null;
@@ -206,9 +207,9 @@
         return val;
     };
 
-    if (doc.step_3) {
-        for (let key in doc.step_3) {
-            const estate_doc = doc.step_3[key];
+    if (nacp_doc.step_3) {
+        for (let key in nacp_doc.step_3) {
+            const estate_doc = nacp_doc.step_3[key];
             if (typeof(estate_doc) != 'object')
                 continue;
             if (!isOwned(estate_doc))
@@ -228,13 +229,13 @@
             }
 
             const owning_date = estate_doc.owningDate.split('.');
-            if (owning_date.length == 3 && owning_date[2] == doc.step_0.declarationYear1 && !estate_doc.costDate)
+            if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !estate_doc.costDate)
                 estate_purch_no_cost = true;
         }
     }
-    if (doc.step_6) {
-        for (let key in doc.step_6) {
-            const vehicle_doc = doc.step_6[key];
+    if (nacp_doc.step_6) {
+        for (let key in nacp_doc.step_6) {
+            const vehicle_doc = nacp_doc.step_6[key];
             if (typeof(vehicle_doc) != 'object')
                 continue;
             if (!isOwned(vehicle_doc))
@@ -242,7 +243,7 @@
             has_vehicle = true;
 
             const owning_date = vehicle_doc.owningDate.split('.');
-            if (owning_date.length == 3 && owning_date[2] == doc.step_0.declarationYear1 && !vehicle_doc.costDate)
+            if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !vehicle_doc.costDate)
                 vehicle_purch_no_cost = true;
 
             let full_name = '';
@@ -264,9 +265,9 @@
             }
         }
     }
-    if (doc.step_11) {
-        for (let key in doc.step_11) {
-            const income_doc = doc.step_11[key];
+    if (nacp_doc.step_11) {
+        for (let key in nacp_doc.step_11) {
+            const income_doc = nacp_doc.step_11[key];
             if (typeof(income_doc) != 'object')
                 continue;
             if (income_doc.sizeIncome === undefined)
@@ -276,9 +277,9 @@
             total_income += income_doc.sizeIncome;
         }
     }
-    if (doc.step_12) {
-        for (let key in doc.step_12) {
-            const assets_doc = doc.step_12[key];
+    if (nacp_doc.step_12) {
+        for (let key in nacp_doc.step_12) {
+            const assets_doc = nacp_doc.step_12[key];
             if (typeof(assets_doc) != 'object')
                 continue;
             if (assets_doc.sizeAssets === undefined)
@@ -293,9 +294,9 @@
             total_assets += val;
         }
     }
-    if (doc.step_13) {
-        for (let key in doc.step_13) {
-            const liability_doc = doc.step_13[key];
+    if (nacp_doc.step_13) {
+        for (let key in nacp_doc.step_13) {
+            const liability_doc = nacp_doc.step_13[key];
             if (typeof(liability_doc) != 'object')
                 continue;
             if (liability_doc.sizeObligation === undefined)
@@ -308,9 +309,9 @@
             total_liabilities += val;
         }
     }
-    if (doc.step_14) {
-        for (let key in doc.step_14) {
-            const expense_doc = doc.step_14[key];
+    if (nacp_doc.step_14) {
+        for (let key in nacp_doc.step_14) {
+            const expense_doc = nacp_doc.step_14[key];
             if (typeof(expense_doc) != 'object')
                 continue;
             if (expense_doc.costAmount === undefined)
@@ -332,8 +333,8 @@
     garage_wo_car = has_garage && !has_vehicle;
     house_no_land = has_house && !has_land;
 
-    emit([doc._id], [assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
-                     liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
-                     has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost,
-                     total_expenses, total_liabilities, total_cash, total_presents]);
+    emit(doc._id, [assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
+                   liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
+                   has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost,
+                   total_expenses, total_liabilities, total_cash, total_presents]);
 }
