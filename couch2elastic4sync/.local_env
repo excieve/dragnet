@@ -1,0 +1,4 @@
+couch2elastic4sync_database=http://couchdb:5984/declarations
+couch2elastic4sync_elasticsearch=http://elasticsearch:9200/nacp_declarations/n_ac_pdeclaration
+couch2elastic4sync_key=doc_uuid
+

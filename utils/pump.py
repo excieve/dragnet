@@ -14,6 +14,8 @@ def csv_to_elasticsearch(filename, match_field, container_field, es_config):
     es = Elasticsearch(es_config['endpoint'])
     with open(filename, 'r', encoding='utf-8') as input_file:
         reader = csv.DictReader(input_file)
+        rows_total = 0
+        rows_pumped = 0
         for row in reader:
             doc_id = row.pop(match_field)
             try:
@@ -21,10 +23,15 @@ def csv_to_elasticsearch(filename, match_field, container_field, es_config):
                 # avoiding full doc transfer back and forth.
                 # In case nothing changed ES knows to avoid any operations internally.
                 es.update(index=es_config['index'], doc_type=es_config['doc_type'], id=doc_id,
-                          body={container_field: row})
+                          body={'doc': {container_field: row}})
+                rows_pumped += 1
             except NotFoundError:
                 # This means we're trying to update a document that hasn't propagated to ES yet, just log it for now
                 logger.error('Document "{}" does not exist in ES yet, maybe rerun later.'.format(doc_id))
+            rows_total += 1
+            if rows_total % 10000 == 0:
+                logger.info('Pump processed {} rows.'.format(rows_total))
+        logger.info('Total pumped {}/{} rows.'.format(rows_pumped, rows_total))
 
 
 if __name__ == '__main__':

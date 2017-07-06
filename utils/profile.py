@@ -3,6 +3,7 @@ import argparse
 import json
 import importlib.util
 import os.path
+import sys
 
 from addview import load_source, add_function
 from export import export_view
@@ -17,6 +18,7 @@ def runner(profile, db_config):
     assert runner_profile['type'] in ['chakra', 'javascript'], 'Unsupported runner type'
 
     logger.info('Executing view runners...')
+    exec_stats = []
     for design_doc in runner_profile['design_documents']:
         logger.info('Processing design document "{}":'.format(design_doc['name']))
         for view in design_doc['views']:
@@ -28,8 +30,10 @@ def runner(profile, db_config):
                 'view': view_name
             }
             func_db_config.update(db_config)
-            add_function(map_function_source, reduce_function_source=None, db_config=func_db_config,
-                         language=runner_profile['type'], execute=runner_profile['sequential'])
+            exec_stat = add_function(map_function_source, reduce_function_source=None, db_config=func_db_config,
+                                     language=runner_profile['type'], execute=runner_profile['sequential'])
+            exec_stats.append(exec_stat)
+    return exec_stats
 
 
 def exporter(profile, db_config):
@@ -86,6 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--password', help='CouchDB password')
     parser.add_argument('-e', '--endpoint', help='CouchDB endpoint', default='http://localhost:5984')
     parser.add_argument('-s', '--elasticsearch', help='ElasticSearch endpoint', default='http://localhost:9200')
+    parser.add_argument('-n', '--noreexport', help='Take no further action if no execution was detected',
+                        action='store_true', default=False)
     args = parser.parse_args()
 
     with open('{}/profiles/{}.json'.format(args.datadir, args.profile), 'r', encoding='utf-8') as fp:
@@ -102,7 +108,10 @@ if __name__ == '__main__':
     logger.info('Profile "{}" successfully loaded.'.format(profile['name']))
 
     if args.action in ('all', 'runner'):
-        runner(profile, db_config)
+        exec_stats = runner(profile, db_config)
+    if not any(exec_stats) and args.noreexport:
+        logger.info('No runner execution detected and "noreexport" is set -- preventing further actions.')
+        sys.exit(0)
     if args.action in ('all', 'exporter'):
         exporter(profile, db_config)
     if args.action in ('all', 'merger'):

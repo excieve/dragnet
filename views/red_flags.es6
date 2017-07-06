@@ -1,7 +1,7 @@
 // Danger Zoooone
 (doc) => {
     const nacp_doc = doc.nacp_orig;
-    if (nacp_doc.step_0 ||nacp_doc.step_0.changesYear || nacp_doc.step_0.declarationType)
+    if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType)
         return;
     if (nacp_doc.step_0.declarationType != '1')
         return;
@@ -333,7 +333,7 @@
     garage_wo_car = has_garage && !has_vehicle;
     house_no_land = has_house && !has_land;
 
-    emit(doc._id, [assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
+    emit(doc._id, [doc.doc_uuid, assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
                    liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
                    has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost,
                    total_expenses, total_liabilities, total_cash, total_presents]);

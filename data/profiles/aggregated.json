@@ -59,7 +59,8 @@
                 "view": "aggregated.step_12_assets",
                 "output": "{datadir}/export/step_12_assets_agg.csv",
                 "columns": [
-                    "id", "assets.declarant", "assets.family", "assets.total", "assets.has_hidden", "assets.has_foreign"
+                    "id", "assets.declarant", "assets.family", "assets.total", "assets.has_hidden",
+                    "assets.has_foreign"
                 ]
             },
             {
@@ -106,12 +107,12 @@
             "{datadir}/export/step_12_assets_agg.csv"
         ],
         "outlier_filters": "{datadir}/filters/outlier_agg_filter.py",
-        "only_years": [2015, 2016]
+        "only_years": []
     },
     "pump": {
         "type": "csv_to_elasticsearch",
         "index": "nacp_declarations",
-        "doc_type": "n_a_c_p_declaration",
+        "doc_type": "n_ac_pdeclaration",
         "match_field": "id",
         "container_field": "aggregated",
         "input": "{datadir}/export/aggregated_with_flags.csv"

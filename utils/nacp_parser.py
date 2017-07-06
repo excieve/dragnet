@@ -293,7 +293,7 @@ class NacpDeclarationParser(object):
         resp["declaration"]["basename"] = os.path.basename(base_fname)
 
         resp["intro"]["corrected"] = id_ in cls.corrected
-        resp["intro"]["date"] = cls.parse_date(created_date)
+        resp["intro"]["date"] = str(cls.parse_date(created_date).year)
 
         if "declarationType" not in data["step_0"] or "changesYear" in data["step_0"]:
             resp["intro"]["doc_type"] = "Форма змін"
@@ -303,11 +303,12 @@ class NacpDeclarationParser(object):
         else:
             resp["intro"]["doc_type"] = cls.declaration_types[data["step_0"]["declarationType"]]
             if "declarationYearTo" in data["step_0"]:
-                resp["intro"]["declaration_year_to"] = cls.parse_date(data["step_0"]["declarationYearTo"])
+                resp["intro"]["declaration_year_to"] = str(cls.parse_date(data["step_0"]["declarationYearTo"]).year)
 
             if "declarationYearFrom" in data["step_0"]:
-                resp["intro"]["declaration_year_from"] = cls.parse_date(data["step_0"]["declarationYearFrom"])
-                resp["intro"]["declaration_year"] = resp["intro"]["declaration_year_from"].year
+                decl_year_from_dt = cls.parse_date(data["step_0"]["declarationYearFrom"]).year
+                resp["intro"]["declaration_year_from"] = str(decl_year_from_dt)
+                resp["intro"]["declaration_year"] = decl_year_from_dt
 
             if "declarationYear1" in data["step_0"]:
                 resp["intro"]["declaration_year"] = int(data["step_0"]["declarationYear1"])

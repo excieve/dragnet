@@ -100,9 +100,9 @@ def preprocess_nacp_doc(source):
         del doc['step_3']
     else:
         for key in iterate_ugly_dict(step_3):
-            normalise_numerical(doc['_id'], step_3, key, 'costDate')
-            normalise_numerical(doc['_id'], step_3, key, 'costAssessment')
-            normalise_numerical(doc['_id'], step_3, key, 'totalArea')
+            normalise_numerical(source['_id'], step_3, key, 'costDate')
+            normalise_numerical(source['_id'], step_3, key, 'costAssessment')
+            normalise_numerical(source['_id'], step_3, key, 'totalArea')
             normalise_empty(step_3, key, 'objectType')
             encode_categories(step_3, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
@@ -119,7 +119,7 @@ def preprocess_nacp_doc(source):
         del doc['step_4']
     else:
         for key in iterate_ugly_dict(step_4):
-            normalise_numerical(doc['_id'], step_4, key, 'totalArea')
+            normalise_numerical(source['_id'], step_4, key, 'totalArea')
             normalise_empty(step_4, key, 'objectType')
             encode_categories(step_4, key, 'objectType', mappings.ESTATE_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
@@ -136,7 +136,7 @@ def preprocess_nacp_doc(source):
         del doc['step_5']
     else:
         for key in iterate_ugly_dict(step_5):
-            normalise_numerical(doc['_id'], step_5, key, 'costDateUse')
+            normalise_numerical(source['_id'], step_5, key, 'costDateUse')
             normalise_empty(step_5, key, 'objectType')
             rights = step_5[key].get('rights', None)
             if isinstance(rights, list):
@@ -149,8 +149,8 @@ def preprocess_nacp_doc(source):
         del doc['step_6']
     else:
         for key in iterate_ugly_dict(step_6):
-            normalise_numerical(doc['_id'], step_6, key, 'costDate')
-            normalise_numerical(doc['_id'], step_6, key, 'graduationYear')
+            normalise_numerical(source['_id'], step_6, key, 'costDate')
+            normalise_numerical(source['_id'], step_6, key, 'graduationYear')
             normalise_empty(step_6, key, 'objectType')
             encode_categories(step_6, key, 'objectType', mappings.VEHICLE_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
@@ -167,8 +167,8 @@ def preprocess_nacp_doc(source):
         del doc['step_7']
     else:
         for key in iterate_ugly_dict(step_7):
-            normalise_numerical(doc['_id'], step_7, key, 'amount')
-            normalise_numerical(doc['_id'], step_7, key, 'cost')
+            normalise_numerical(source['_id'], step_7, key, 'amount')
+            normalise_numerical(source['_id'], step_7, key, 'cost')
             normalise_empty(step_7, key, 'emitent_type')
             normalise_empty(step_7, key, 'typeProperty')
             rights = step_7[key].get('rights', None)
@@ -182,8 +182,8 @@ def preprocess_nacp_doc(source):
         del doc['step_8']
     else:
         for key in iterate_ugly_dict(step_8):
-            normalise_numerical(doc['_id'], step_8, key, 'cost')
-            normalise_numerical(doc['_id'], step_8, key, 'cost_percent')
+            normalise_numerical(source['_id'], step_8, key, 'cost')
+            normalise_numerical(source['_id'], step_8, key, 'cost_percent')
             normalise_empty(step_8, key, 'legalForm')
             rights = step_8[key].get('rights', None)
             if isinstance(rights, list):
@@ -196,7 +196,7 @@ def preprocess_nacp_doc(source):
         del doc['step_9']
     else:
         for key in iterate_ugly_dict(step_9):
-            normalise_empty(step_8, key, 'legalForm')
+            normalise_empty(step_9, key, 'legalForm')
     step_10 = doc.get('step_10', None)
     if is_empty_step(step_10):
         del doc['step_10']
@@ -205,7 +205,7 @@ def preprocess_nacp_doc(source):
         del doc['step_11']
     else:
         for key in iterate_ugly_dict(step_11):
-            normalise_numerical(doc['_id'], step_11, key, 'sizeIncome')
+            normalise_numerical(source['_id'], step_11, key, 'sizeIncome')
             normalise_empty(step_11, key, 'objectType')
             normalise_empty(step_11, key, 'incomeSource')
             encode_categories(step_11, key, 'objectType', mappings.INCOME_OBJECT_TYPE_MAPPING,
@@ -216,7 +216,7 @@ def preprocess_nacp_doc(source):
         del doc['step_12']
     else:
         for key in iterate_ugly_dict(step_12):
-            normalise_numerical(doc['_id'], step_12, key, 'sizeAssets')
+            normalise_numerical(source['_id'], step_12, key, 'sizeAssets')
             normalise_empty(step_12, key, 'objectType')
             encode_categories(step_12, key, 'objectType', mappings.ASSET_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
@@ -227,7 +227,7 @@ def preprocess_nacp_doc(source):
         del doc['step_13']
     else:
         for key in iterate_ugly_dict(step_13):
-            normalise_numerical(doc['_id'], step_13, key, 'sizeObligation')
+            normalise_numerical(source['_id'], step_13, key, 'sizeObligation')
             normalise_empty(step_13, key, 'objectType')
             encode_categories(step_13, key, 'objectType', mappings.LIABILITY_OBJECT_TYPE_MAPPING,
                               new_field='objectType_encoded')
@@ -238,7 +238,7 @@ def preprocess_nacp_doc(source):
         del doc['step_14']
     else:
         for key in iterate_ugly_dict(step_14):
-            normalise_numerical(doc['_id'], step_14, key, 'costAmount')
+            normalise_numerical(source['_id'], step_14, key, 'costAmount')
             normalise_empty(step_14, key, 'specExpenses')
             encode_categories(step_14, key, 'specExpenses', mappings.EXPENSE_SPEC_MAPPING,
                               new_field='specExpenses_encoded')

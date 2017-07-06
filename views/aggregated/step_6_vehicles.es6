@@ -45,6 +45,6 @@
     }
     all_names = all_names.slice(0, -1); // Remove last ";"
 
-    emit(doc._id, [declarant_cost, family_cost, total_cost, max_year || '!немає даних', has_hidden, all_names,
+    emit(doc._id, [doc.doc_uuid, declarant_cost, family_cost, total_cost, max_year || '!немає даних', has_hidden, all_names,
                    seen_all_vehicles.size > 0]);
 }

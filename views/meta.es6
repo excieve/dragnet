@@ -14,6 +14,6 @@
     if (mapped_region == 'Севастополь')
         mapped_region = 'Кримська Автономна Республіка';
     emit(doc._id,
-         [dcu_link, full_name, nacp_doc.step_0.declarationYear1, name_post,
+         [doc.doc_uuid, dcu_link, full_name, nacp_doc.step_0.declarationYear1, name_post,
           has_family, nacp_doc.step_1.organization_group, mapped_region]);
 }

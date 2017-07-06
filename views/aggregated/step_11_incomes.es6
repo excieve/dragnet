@@ -14,21 +14,21 @@
         const income_doc = nacp_doc.step_11[key];
         if (typeof(income_doc) != 'object')
             continue;
-        if (income_nacp_doc.sizeIncome === undefined)
+        if (income_doc.sizeIncome === undefined)
             continue;
-        if (income_nacp_doc.is_foreign == true)
+        if (income_doc.is_foreign == true)
             has_foreign = true;
-        if (income_nacp_doc.sizeIncome_hidden) {
+        if (income_doc.sizeIncome_hidden) {
             has_hidden = true;
             continue;
         }
 
-        if (income_nacp_doc.person == '1')
-            declarant_income += income_nacp_doc.sizeIncome;
-        else if (String(income_nacp_doc.person) in (nacp_doc.step_2 || {}))
-            family_income += income_nacp_doc.sizeIncome;
-        total_income += income_nacp_doc.sizeIncome;
+        if (income_doc.person == '1')
+            declarant_income += income_doc.sizeIncome;
+        else if (String(income_doc.person) in (nacp_doc.step_2 || {}))
+            family_income += income_doc.sizeIncome;
+        total_income += income_doc.sizeIncome;
     }
 
-    emit(doc._id, [declarant_income, family_income, total_income, has_hidden, has_foreign]);
+    emit(doc._id, [doc.doc_uuid, declarant_income, family_income, total_income, has_hidden, has_foreign]);
 }

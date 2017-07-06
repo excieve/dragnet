@@ -53,6 +53,6 @@
         }
     }
 
-    emit(doc._id, [declarant_land, declarant_other, family_land, family_other, total_land, total_other, has_hidden,
+    emit(doc._id, [doc.doc_uuid, declarant_land, declarant_other, family_land, family_other, total_land, total_other, has_hidden,
                    has_foreign]);
 }

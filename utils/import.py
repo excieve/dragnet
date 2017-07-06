@@ -24,13 +24,15 @@ def import_batch(docs, db_config):
     t1 = perf_counter()
     docs_objects = []
     for doc_file in docs:
+        if not doc_file:
+            continue
         doc_object = NacpDeclarationParser.parse(doc_file)
         if doc_object:
             source = doc_object
             source.update({
                 # Convert string UUID to int for less storage and much faster sorting as CouchDB doc ID.
                 # String representation still persisted in the doc body.
-                '_id': UUID(doc_object['doc_uuid'].replace('nacp_', '')).int,
+                '_id': str(UUID(doc_object['doc_uuid'].replace('nacp_', '')).int),
             })
             docs_objects.append(preprocess_nacp_doc(source))
     imported = 0

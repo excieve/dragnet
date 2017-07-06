@@ -149,7 +149,7 @@
         }
 
         let val = assets_doc.sizeAssets;
-        if (assets_nacp_doc.assetsCurrency && assets_nacp_doc.assetsCurrency != 'UAH') {
+        if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != 'UAH') {
             let exchange_table = exchange_rates_2015;
             if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
@@ -167,5 +167,5 @@
         total_assets += val;
     }
 
-    emit(doc._id, [declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
+    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
 }
