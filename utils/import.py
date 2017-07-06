@@ -86,7 +86,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dbname', help='CouchDB database name', default='declarations')
     parser.add_argument('-e', '--endpoint', help='CouchDB endpoint', default='http://localhost:5984')
     parser.add_argument('-c', '--concurrency', help='Number of processes to spawn', type=int, default=8)
-    parser.add_argument('-C', '--chunks', help='Number of chunks to run in a batch', type=int, default=1500)
+    parser.add_argument('-C', '--chunks', help='Number of chunks to run in a batch', type=int, default=200)
     parser.add_argument('-P', '--purge', help='Purge the DB before importing', action='store_true', default=False)
     args = parser.parse_args()
 

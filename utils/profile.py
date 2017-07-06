@@ -66,7 +66,7 @@ def merger(profile):
 
 def pump(profile, es_endpoint):
     pump_profile = profile['pump']
-    assert pump_profile['type'] == 'csv_to_elasticsearch', 'Unsupported merger type'
+    assert pump_profile['type'] == 'csv_to_elasticsearch', 'Unsupported pump type'
 
     logger.info('Executing pump...')
     es_config = {

@@ -1,5 +1,7 @@
 # dragnet
 
+This project is currently a part of [declarations.com.ua](https://github.com/dchaplinsky/declarations.com.ua) and should be used in conjuncture with it. The mentioned project also contains a Docker Compose definition to run everything together.
+
 ## Running CouchDB
 
 Build the docker image, from couchdb directory run:
@@ -20,14 +22,31 @@ The container has a docker volume for the DB at `/opt/couchdb/data`, which can b
 sudo docker run -d -p 5984:5984 --name dragnet_couchdb -v /some/path/on/host:/opt/couchdb/data dragnet/couchdb
 ```
 
+
+## Running ElasticSearch sync
+
+Build the docker imiage, from couch2elastic4sync directory run:
+```
+sudo docker build -t dragnet/sync .
+```
+
+Run the container to continuously synchronise:
+```
+sudo docker run -d --name dragnet_sync dragnet/sync -e couch2elastic4sync_database=http://couchdb_endpoint:5984/declarations -e couch2elastic4sync_elasticsearch=http://elasticsearch_endpoint:9200/index/doctype -e couch2elastic4sync_key=id_key
+```
+
+See [couch2elastic4sync](https://github.com/ryanramage/couch2elastic4sync) for more details and options (e.g. it can stop on catching up or just doing a one-off load instead of continuous sync).
+
+
 ## Importing documents
 
-With elasticdump-like output file:
+Currently only supports a directory of NACP dump consisting of JSON and HTML pairs:
 ```
-python3 utils/import.py path/to/elasticdump.json -u username -p password -e http://endpoint:port -d declarations -c 8 -C 300
+python3 utils/import.py path/to/dump_dir -u username -p password -e http://endpoint:port -d declarations -c 8 -C 300
 ```
 This will run import in 8 processes of 300 chunks max per each concurrently against the "declarations" CouchDB database at specified endpoint with corresponding credentials with the dump as a first argument. Additionally `-P` option may be used to purge the DB prior to import.
 
+The general recommendation for the `-c` and `-C` params is to have slightly more concurrency than available (hyper)cores as there's high chance of workers waiting on I/O. Chunks, however, depend on the processing power.
 
 ## Adding views with map/reduce functions
 
@@ -41,7 +60,6 @@ This will create a "reference" design document on the "declarations" DB with a "
 
 Supported `-l` (language) values are currently "javascript" (for the default couchjs/SpiderMonkey), "chakra" (for couch-chakra/ChakraCore), which supports ES6 natively and "coffeescript" (transpiles into ES5 and runs on couchjs). Benchmark docker image also allows "python", "pypy" and "erlang".
 
-TODO: Create a Dockerfile for utils.
 
 ## Exporting views
 
@@ -52,10 +70,19 @@ python3 utils/export.py ddoc_name view_name -u username -p password -o /path/to/
 However, this won't map CSV columns to the data. Use execution profiles for this.
 
 
+## Pump
+
+View processing results can be pumped into a different data storage (currently only ElasticSearch is supported), e.g.:
+```
+python3 utils/pump.py results_filename -e http://elasticsearch:port -i index -t doctype -m id_match_field -c doc_container_field
+```
+This will pump processing results from `results_filename` file (typically CSV from export and/or merge) and update existing documents in the destination storage matched by `id_match_field` into the `doc_container_field` of every document. This requires that the matching documents already exist at the destination (e.g. via the CouchDB to ElasticSearch sync tool), otherwise they'll be ignored. It's generally safe to "repump" the same results.
+
+
 ## Execution profiles
 
 All of the above except the data import step can be automated using the execution profiles.
-Profiles are JSON files describing steps ("runner", "exporter", "merger") and options for them. See `data/profiles/aggregated.json` for a good example.
+Profiles are JSON files describing steps ("runner", "exporter", "merger", "pump") and options for them. See `data/profiles/aggregated.json` for a good example.
 
 In order to execute full profile use the following command:
 ```
@@ -64,6 +91,13 @@ python3 utils/profile.py all profile_name -d data_dir -u username -p password -e
 This will run views sequentially then export them to `data_dir/export/`, eventually merging and filtering them into a singe file in the same directory.
 
 Profile does not require to have all the steps specified. In this case only specific profile command should be used instead of "all".
+
+In case `--noreexport` flag is set the execution will stop after the "runner" step if no processing has been detected. Useful when launched from cron to avoid repeating unnecessary computations.
+
+
+## Docker for utils
+
+All the above utils can be run within a Docker container. There's a Dockerfile in `utils` to build a usable image for it. However, please make sure to mount volumes for `data` and `views` that would be accessible from the container.
 
 
 ## Benchmarking
