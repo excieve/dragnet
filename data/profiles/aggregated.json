@@ -1,6 +1,11 @@
 {
     "name": "aggregated_with_flags",
     "database": "declarations",
+    "loader": {
+        "type": "nacp",
+        "input_dir": "{datadir}/import/nacp",
+        "state_file": "{datadir}/import/laststate"
+    },
     "runner": {
         "type": "chakra",
         "sequential": true,
@@ -115,6 +120,7 @@
         "doc_type": "n_ac_pdeclaration",
         "match_field": "id",
         "container_field": "aggregated",
-        "input": "{datadir}/export/aggregated_with_flags.csv"
+        "input": "{datadir}/export/aggregated_with_flags.csv",
+        "state_file": "{datadir}/import/laststate"
     }
 }

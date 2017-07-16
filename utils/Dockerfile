@@ -9,4 +9,3 @@ RUN mkdir /mnt/dragnet_data
 RUN mkdir /mnt/declarations_bank
 RUN mkdir /usr/local/dragnet/views
 VOLUME ["/mnt/dragnet_data", "/mnt/declarations_bank", "/usr/local/dragnet/views"]
-

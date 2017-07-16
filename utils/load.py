@@ -12,7 +12,7 @@ from uuid import UUID
 from cloudant import couchdb
 
 
-from nacp_parser import NacpDeclarationParser
+from nacp_parser import NacpDeclarationParser, parse_guid_from_fname
 from nacp_normaliser import preprocess_nacp_doc
 
 
@@ -35,15 +35,14 @@ def import_batch(docs, db_config):
                 '_id': str(UUID(doc_object['doc_uuid'].replace('nacp_', '')).int),
             })
             docs_objects.append(preprocess_nacp_doc(source))
-    imported = 0
+    imported_docs = []
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         # When trying to bulk insert an existing document without providing a new revision ID CouchDB will
         # throw a conflict error, we'll use this to only insert new stuff without explicit existence checks.
         imported_docs = list(filter(lambda x: x.get('error') is None, db.bulk_docs(docs_objects)))
-        imported += len(imported_docs)
     t2 = perf_counter()
-    return len(docs_objects), imported, t2 - t1
+    return len(docs_objects), [d['id'] for d in imported_docs], t2 - t1
 
 
 def grouper(iterable, n, fillvalue=None):
@@ -53,33 +52,58 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
-def import_all(docs_dir, db_config, concurrency, chunks_per_process):
+def get_all_uuids(db_config):
+    ids = []
+    with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
+        db = couch[db_config['name']]
+        # TODO: Grabs ALL keys in the DB in one request, it's probably not very scalable -- revise if causing troubles
+        ids = db.keys(remote=True)
+    # Transform base-10 UUID to base-16 and omit design documents
+    return set(str(UUID(int=int(x))) for x in ids if not x.startswith('_design/'))
+
+
+def import_all(docs_dir, db_config, concurrency, chunks_per_process, state_filename=None):
     total_imported_docs, rates = 0, []
     jsons = glob2.iglob(os.path.join(docs_dir, "**/*.json"))
+    all_uuids = get_all_uuids(db_config)
+    logger.info('Loaded {} existing UUIDs from the storage.'.format(len(all_uuids)))
+    state_file = None
+    if state_filename:
+        logger.info('Will be saving stored IDs (if any) to "{}".'.format(state_filename))
+        state_file = open(state_filename, 'w+', encoding='utf-8')
     with Pool(concurrency) as pool:
         # Lazily consume batches of `chunks_per_process` for every process in the pool of `concurrency`
         results = pool.imap(partial(import_batch, db_config=db_config),
-                            grouper(jsons, chunks_per_process))
+                            grouper(filter(lambda x: parse_guid_from_fname(x)[0] not in all_uuids, jsons),
+                                    chunks_per_process))
         for i, result in enumerate(results):
             num_docs, imported_docs, time_spent = result
-            total_imported_docs += imported_docs
+            total_imported_docs += len(imported_docs)
             rate = float(num_docs) / float(time_spent)
             rates.append(rate)
             logger.info(
                 'Batch #{} finished importing {} new documents in {:.2f}s with the rate of {:.2f}docs/s'
-                .format(i, imported_docs, time_spent, rate)
+                .format(i, len(imported_docs), time_spent, rate)
             )
-    logger.info(
-        'Total imported {} new documents with the avg rate of {:.2f}docs/s across all processes'
-        .format(total_imported_docs, sum(rates) / float(len(rates)) * concurrency)
-    )
+            if state_file and imported_docs:
+                state_file.write('\n'.join(imported_docs))
+                state_file.write('\n')
+    if total_imported_docs:
+        logger.info(
+            'Total imported {} new documents with the avg rate of {:.2f}docs/s across all processes'
+            .format(total_imported_docs, sum(rates) / float(len(rates)) * concurrency)
+        )
+    else:
+        logger.info('No new documents imported')
+    if state_file:
+        state_file.close()
 
 
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
 
-    parser = argparse.ArgumentParser(description='Import documents to CouchDB')
+    parser = argparse.ArgumentParser(description='Load documents to CouchDB')
     parser.add_argument('docs_dir', help='Documents directory')
     parser.add_argument('-u', '--username', help='CouchDB username')
     parser.add_argument('-p', '--password', help='CouchDB password')
@@ -88,6 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--concurrency', help='Number of processes to spawn', type=int, default=8)
     parser.add_argument('-C', '--chunks', help='Number of chunks to run in a batch', type=int, default=200)
     parser.add_argument('-P', '--purge', help='Purge the DB before importing', action='store_true', default=False)
+    parser.add_argument('-S', '--state', help='Save imported IDs to a provided file')
     args = parser.parse_args()
 
     db_config = {
@@ -110,4 +135,4 @@ if __name__ == '__main__':
         if db.exists():
             logger.info('Database {} created or already exists'.format(args.dbname))
 
-    import_all(args.docs_dir, db_config, args.concurrency, args.chunks)
+    import_all(args.docs_dir, db_config, args.concurrency, args.chunks, args.state)

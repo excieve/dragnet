@@ -2,10 +2,14 @@ import re
 import json
 import os.path
 import dpath.util
+import logging
 
 from string import capwords
 from parsel import Selector
 from dateutil.parser import parse as dt_parse
+
+
+logger = logging.getLogger('dragnet.nacp_parser')
 
 
 class BadJSONData(Exception):
@@ -260,11 +264,11 @@ class NacpDeclarationParser(object):
                 raw_html = fp.read()
                 html = Selector(raw_html)
         except ValueError:
-            print(
+            logger.error(
                 "File {} or it's HTML counterpart cannot be parsed".format(json_fname))
             return None
         except FileNotFoundError:
-            print(
+            logger.error(
                 "File {} or it's HTML counterpart cannot be found".format(json_fname))
             return None
 
@@ -442,6 +446,6 @@ class NacpDeclarationParser(object):
     def parse(cls, fname):
         try:
             return cls._parse_me(fname.replace(".json", ""))
-        except BadJSONData as e:
-            print("{}: on file {}".format(e, fname))
+        except (BadJSONData, BadHTMLData, ValueError) as e:
+            logger.error("{}: on file {}".format(e, fname))
             return None
