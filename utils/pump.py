@@ -48,7 +48,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     es_config = {
-        'endpoint': args.endpoint,
+        'endpoint': args.elasticsearch,
         'index': args.index,
         'doc_type': args.type
     }
