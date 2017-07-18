@@ -1,2 +1,6 @@
-cloudant==2.4.0
+cloudant==2.5.0
 pandas==0.19.2
+elasticsearch==5.4.0
+glob2==0.5
+dpath==1.4.0
+parsel==1.0.3

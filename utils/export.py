@@ -8,9 +8,9 @@ logger = logging.getLogger('dragnet.export')
 
 
 def write_row(row, writer):
-    keys = row['key']
-    if not isinstance(keys, list):
-        keys = [keys]
+    keys = []
+    if isinstance(row['key'], list):
+        keys = row['key']
     values = row['value']
     if not isinstance(values, list):
         values = [values]
@@ -36,18 +36,19 @@ def export_view(filename, design_doc_name, view_name, db_config, mappings=None):
             # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
             # This scales very well as the DB never needs to scan over all the previous nodes.
             rows = first_result['rows']
-            start_key = rows[0]['key']
-            write_row(rows[0], view_writer)
-            rows_exported += 1
-            with view.custom_result(skip=1, limit=20000, stale='ok') as result:
-                while rows:
-                    rows = result[start_key:]
-                    if rows:
-                        start_key = rows[-1]['key']
-                        for row in rows:
-                            write_row(row, view_writer)
-                            rows_exported += 1
-                        logger.info('Exported {} rows.'.format(rows_exported))
+            if rows:
+                start_key = rows[0]['key']
+                write_row(rows[0], view_writer)
+                rows_exported += 1
+                with view.custom_result(skip=1, limit=20000, stale='ok') as result:
+                    while rows:
+                        rows = result[start_key:]
+                        if rows:
+                            start_key = rows[-1]['key']
+                            for row in rows:
+                                write_row(row, view_writer)
+                                rows_exported += 1
+                            logger.info('Exported {} rows.'.format(rows_exported))
         logger.info('Total exported {} rows. '.format(rows_exported))
 
 

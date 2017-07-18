@@ -85,7 +85,11 @@ def execute_view(couch, view):
         if total_time == 0:
             continue
 
-        changes_per_sec = [float(t['changes_done']) / float(t['updated_on'] - t['started_on']) for t in tasks]
+        changes_per_sec = []
+        for t in tasks:
+            diff_t = float(t['updated_on'] - t['started_on'])
+            if diff_t > 0:
+                changes_per_sec.append(float(t['changes_done']) / diff_t)
         all_changes_per_sec.append(sum(changes_per_sec))
         all_changes_per_sec_one_task.append(changes_per_sec[0])
         logger.info('c/s = {:.2f} ({} tasks), {:.2f} (one task); changes = {}'
@@ -103,6 +107,7 @@ def execute_view(couch, view):
         logger.info('total time = {}s'.format(total_time))
     else:
         logger.info('No active tasks (not indexing).')
+    return all_changes_per_sec
 
 
 def add_function(map_function_source, reduce_function_source, db_config, language, execute):
@@ -124,7 +129,7 @@ def add_function(map_function_source, reduce_function_source, db_config, languag
         logger.debug(design_doc.info())
         if execute:
             view = design_doc.get_view(db_config['view'])
-            execute_view(couch, view)
+            return execute_view(couch, view)
 
 
 if __name__ == '__main__':

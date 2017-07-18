@@ -1,7 +1,8 @@
 (doc) => {
-    if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType || !doc.step_12)
+    const nacp_doc = doc.nacp_orig;
+    if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType || !nacp_doc.step_12)
         return;
-    if (doc.step_0.declarationType != '1')
+    if (nacp_doc.step_0.declarationType != '1')
         return;
 
     const exchange_rates_2015 = {
@@ -133,8 +134,8 @@
         total_assets = 0.0,
         has_hidden = false,
         has_foreign = false;
-    for (let key in doc.step_12) {
-        const assets_doc = doc.step_12[key];
+    for (let key in nacp_doc.step_12) {
+        const assets_doc = nacp_doc.step_12[key];
         if (typeof(assets_doc) != 'object')
             continue;
         // Sometimes there's just broken JSON
@@ -150,7 +151,7 @@
         let val = assets_doc.sizeAssets;
         if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != 'UAH') {
             let exchange_table = exchange_rates_2015;
-            if (doc.step_0.declarationYear1 == '2016')
+            if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
             if (!(assets_doc.assetsCurrency in exchange_table)) {
                 log(`${assets_doc.assetsCurrency} currency code is not known`);
@@ -161,10 +162,10 @@
 
         if (assets_doc.person == '1')
             declarant_assets += val;
-        else if (String(assets_doc.person) in (doc.step_2 || {}))
+        else if (String(assets_doc.person) in (nacp_doc.step_2 || {}))
             family_assets += val;
         total_assets += val;
     }
 
-    emit([doc._id], [declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
+    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
 }
