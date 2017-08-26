@@ -2,8 +2,6 @@
     const nacp_doc = doc.nacp_orig;
     if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType || !nacp_doc.step_1)
         return;
-    if (nacp_doc.step_0.declarationType != '1')
-        return;
 
     const dcu_link = `https://declarations.com.ua/declaration/${doc.doc_uuid}`,
           full_name = `${nacp_doc.step_1.lastname} ${nacp_doc.step_1.firstname} ${nacp_doc.step_1.middlename}`,

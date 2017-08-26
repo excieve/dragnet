@@ -3,8 +3,6 @@
     const nacp_doc = doc.nacp_orig;
     if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType)
         return;
-    if (nacp_doc.step_0.declarationType != '1')
-        return;
 
     // TODO: perhaps move this to a separate stored function with rates by year
     const exchange_rates_2015 = {

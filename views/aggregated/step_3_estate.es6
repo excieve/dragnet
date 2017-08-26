@@ -2,8 +2,6 @@
     const nacp_doc = doc.nacp_orig;
     if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType || !nacp_doc.step_3)
         return;
-    if (nacp_doc.step_0.declarationType != '1')
-        return;
 
     let declarant_land = 0.0,
         family_land = 0.0,

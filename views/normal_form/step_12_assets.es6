@@ -1,8 +1,6 @@
 (doc) => {
     if (!doc.step_0 || doc.step_0.changesYear || !doc.step_0.declarationType || !doc.step_12)
         return;
-    if (doc.step_0.declarationType != '1')
-        return;
 
     const exchange_rates_2015 = {
         "UAH": 1,

@@ -1,7 +1,7 @@
 import logging
 import argparse
 import pandas
-import json
+import numpy
 
 from uuid import UUID
 
@@ -39,12 +39,19 @@ def map_row_to_esop(doc, state, processed, match_field, container_field, es_conf
     Maps CouchDB document to ElasticSearch Bulk API operation, while matching with a processed result if available.
     Returns a dict with formatted "upsert".
     """
+    def np_to_scalar(v):
+        if isinstance(v, numpy.generic):
+            return numpy.asscalar(v)
+        else:
+            return v
+
     doc['couchdb_id'] = doc.pop('_id')  # ES doesn't allow "_id" as it is its own metadata
     processed_doc = processed.loc[processed[match_field] == doc['doc_uuid']]
     if not processed_doc.empty:
-        # This is a super ugly way of getting rid of numpy types before passing over to ES JSON serialiser
-        # TODO: maybe there's another way?
-        doc[container_field] = json.loads(processed_doc.iloc[0].to_json())
+        # Getting rid of numpy types before passing over to ES JSON serialiser
+        doc[container_field] = dict(
+            (k, np_to_scalar(v)) for k, v in processed_doc.iloc[0].items()
+        )
     op = {
         '_op_type': 'update',  # Upserts for the win
         '_index': es_config['index'],

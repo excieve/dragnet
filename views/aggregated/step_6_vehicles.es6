@@ -2,8 +2,6 @@
     const nacp_doc = doc.nacp_orig;
     if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType || !nacp_doc.step_6)
         return;
-    if (nacp_doc.step_0.declarationType != '1')
-        return;
 
     let declarant_cost = 0.0,
         family_cost = 0.0,
