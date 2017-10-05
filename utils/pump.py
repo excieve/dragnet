@@ -17,7 +17,7 @@ def load_processed(filename, match_field, state=None):
     """
     Loads processing results, filters by state if needed and returns a Pandas DataFrame.
     """
-    df = pandas.read_csv(filename)
+    df = pandas.read_csv(filename, na_filter=False)
     if state:
         # TODO: converting back to hex with "nacp_" prefix is a hack and should be properly generalised
         df = df[df[match_field].isin(['nacp_{}'.format(UUID(int=int(x))) for x in state])]
@@ -67,7 +67,7 @@ def map_row_to_esop(doc, state, processed, match_field, container_field, es_conf
 def csv_to_elasticsearch(processed_filename, state_filename, match_field, container_field, db_config, es_config):
     logger.info('Pumping state "{}" and processing results CSV "{}" to "{}" container field in related documents'
                 .format(state_filename, processed_filename, container_field))
-    es = Elasticsearch(es_config['endpoint'])
+    es = Elasticsearch(es_config['endpoint'], timeout=120)
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         state = load_state(state_filename)
@@ -100,7 +100,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                             break
                     # Consume the parallel generator in full
                     # TODO: make threads and chunks configurable
-                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=500):
+                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=8, chunk_size=200):
                         if success:
                             rows_pumped += 1
                         else:
