@@ -17,7 +17,7 @@ def load_processed(filename, match_field, state=None):
     """
     Loads processing results, filters by state if needed and returns a Pandas DataFrame.
     """
-    df = pandas.read_csv(filename)
+    df = pandas.read_csv(filename, na_filter=False, index_col=match_field)
     if state:
         # TODO: converting back to hex with "nacp_" prefix is a hack and should be properly generalised
         df = df[df[match_field].isin(['nacp_{}'.format(UUID(int=int(x))) for x in state])]
@@ -46,12 +46,14 @@ def map_row_to_esop(doc, state, processed, match_field, container_field, es_conf
             return v
 
     doc['couchdb_id'] = doc.pop('_id')  # ES doesn't allow "_id" as it is its own metadata
-    processed_doc = processed.loc[processed[match_field] == doc['doc_uuid']]
-    if not processed_doc.empty:
+    try:
+        processed_doc = processed.loc[doc['doc_uuid']]
         # Getting rid of numpy types before passing over to ES JSON serialiser
         doc[container_field] = dict(
-            (k, np_to_scalar(v)) for k, v in processed_doc.iloc[0].items()
+            (k, np_to_scalar(v)) for k, v in processed_doc.items()
         )
+    except KeyError:
+        pass
     op = {
         '_op_type': 'update',  # Upserts for the win
         '_index': es_config['index'],
@@ -67,7 +69,7 @@ def map_row_to_esop(doc, state, processed, match_field, container_field, es_conf
 def csv_to_elasticsearch(processed_filename, state_filename, match_field, container_field, db_config, es_config):
     logger.info('Pumping state "{}" and processing results CSV "{}" to "{}" container field in related documents'
                 .format(state_filename, processed_filename, container_field))
-    es = Elasticsearch(es_config['endpoint'])
+    es = Elasticsearch(es_config['endpoint'], timeout=120, maxsize=16)
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         state = load_state(state_filename)
@@ -84,7 +86,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
         logger.info('Docs with keys between "{}" and "{}" will be pumped to ES.'.format(start_key, end_key))
         del state_list
         rows_pumped = 0
-        with db.custom_result(skip=1, limit=10000, include_docs=True) as result:
+        with db.custom_result(skip=1, limit=4800, include_docs=True) as result:
             reached_end = False
             while not reached_end:
                 rows = result[start_key:]
@@ -100,12 +102,13 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                             break
                     # Consume the parallel generator in full
                     # TODO: make threads and chunks configurable
-                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=500):
+                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=300):
                         if success:
                             rows_pumped += 1
                         else:
                             logger.warning('Pumping documents failed: {}'.format(info))
                     logger.info('Pump processed {} rows.'.format(rows_pumped))
+
                     bulk_accumulator = []
         logger.info('Total pumped/state/processing: {}/{}/{}.'.format(rows_pumped, len(state), len(processed)))
 
