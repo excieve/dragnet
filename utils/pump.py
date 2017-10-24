@@ -7,7 +7,7 @@ from uuid import UUID
 
 from cloudant import couchdb
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk, parallel_bulk
+from elasticsearch.helpers import parallel_bulk
 
 
 logger = logging.getLogger('dragnet.pump')
@@ -17,12 +17,11 @@ def load_processed(filename, match_field, state=None):
     """
     Loads processing results, filters by state if needed and returns a Pandas DataFrame.
     """
-    df = pandas.read_csv(filename, na_filter=False)
+    df = pandas.read_csv(filename, na_filter=False, index_col=match_field)
     if state:
         # TODO: converting back to hex with "nacp_" prefix is a hack and should be properly generalised
         df = df[df[match_field].isin(['nacp_{}'.format(UUID(int=int(x))) for x in state])]
-    dct = df["id"].to_dict()
-    return df, {v: k for k, v in dct.items()}
+    return df
 
 
 def load_state(filename):
@@ -35,7 +34,7 @@ def load_state(filename):
     return set(ids)
 
 
-def map_row_to_esop(doc, state, processed, rev_dict, match_field, container_field, es_config):
+def map_row_to_esop(doc, state, processed, match_field, container_field, es_config):
     """
     Maps CouchDB document to ElasticSearch Bulk API operation, while matching with a processed result if available.
     Returns a dict with formatted "upsert".
@@ -47,12 +46,14 @@ def map_row_to_esop(doc, state, processed, rev_dict, match_field, container_fiel
             return v
 
     doc['couchdb_id'] = doc.pop('_id')  # ES doesn't allow "_id" as it is its own metadata
-    if doc['doc_uuid'] in rev_dict:
-        processed_doc = processed.iloc[processed.index==rev_dict[doc['doc_uuid']]]
+    try:
+        processed_doc = processed.loc[doc['doc_uuid']]
         # Getting rid of numpy types before passing over to ES JSON serialiser
         doc[container_field] = dict(
-            (k, np_to_scalar(v)) for k, v in processed_doc.iloc[0].items()
+            (k, np_to_scalar(v)) for k, v in processed_doc.items()
         )
+    except KeyError:
+        pass
     op = {
         '_op_type': 'update',  # Upserts for the win
         '_index': es_config['index'],
@@ -68,24 +69,24 @@ def map_row_to_esop(doc, state, processed, rev_dict, match_field, container_fiel
 def csv_to_elasticsearch(processed_filename, state_filename, match_field, container_field, db_config, es_config):
     logger.info('Pumping state "{}" and processing results CSV "{}" to "{}" container field in related documents'
                 .format(state_filename, processed_filename, container_field))
-    es = Elasticsearch(es_config['endpoint'], timeout=120)
+    es = Elasticsearch(es_config['endpoint'], timeout=120, maxsize=16)
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         state = load_state(state_filename)
         logger.info('Loaded {} IDs from the last imported state.'.format(len(state)))
         if not state:
             return
-        processed, rev_dict = load_processed(processed_filename, match_field, state)
+        processed = load_processed(processed_filename, match_field, state)
         logger.info('Loaded {} processed results.'. format(len(processed)))
         state_list = sorted(list(state))  # Sorting is important to utilise B-Tree slicing in CouchDB
         first_result = db[state_list[0]]
-        bulk_accumulator = [map_row_to_esop(first_result, state, processed, rev_dict, match_field, container_field, es_config)]
+        bulk_accumulator = [map_row_to_esop(first_result, state, processed, match_field, container_field, es_config)]
         start_key = state_list[0]
         end_key = state_list[-1]
         logger.info('Docs with keys between "{}" and "{}" will be pumped to ES.'.format(start_key, end_key))
         del state_list
         rows_pumped = 0
-        with db.custom_result(skip=1, limit=10000, include_docs=True) as result:
+        with db.custom_result(skip=1, limit=48000, include_docs=True) as result:
             reached_end = False
             while not reached_end:
                 rows = result[start_key:]
@@ -93,7 +94,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                     start_key = rows[-1]['key']
                     for row in rows:
                         if row['id'] in state:
-                            doc = map_row_to_esop(row['doc'], state, processed, rev_dict, match_field, container_field, es_config)
+                            doc = map_row_to_esop(row['doc'], state, processed, match_field, container_field, es_config)
                             bulk_accumulator.append(doc)
                         if row['id'] == end_key:
                             # Reached the end of state, no point looking further
@@ -101,7 +102,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                             break
                     # Consume the parallel generator in full
                     # TODO: make threads and chunks configurable
-                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=500):
+                    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=300):
                         if success:
                             rows_pumped += 1
                         else:
