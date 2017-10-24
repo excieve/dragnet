@@ -86,7 +86,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
         logger.info('Docs with keys between "{}" and "{}" will be pumped to ES.'.format(start_key, end_key))
         del state_list
         rows_pumped = 0
-        with db.custom_result(skip=1, limit=48000, include_docs=True) as result:
+        with db.custom_result(skip=1, limit=4800, include_docs=True) as result:
             reached_end = False
             while not reached_end:
                 rows = result[start_key:]
