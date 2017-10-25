@@ -3,8 +3,6 @@ import argparse
 import pandas
 import numpy
 
-from uuid import UUID
-
 from cloudant import couchdb
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import parallel_bulk
@@ -13,14 +11,11 @@ from elasticsearch.helpers import parallel_bulk
 logger = logging.getLogger('dragnet.pump')
 
 
-def load_processed(filename, match_field, state=None):
+def load_processed(filename, match_field):
     """
     Loads processing results, filters by state if needed and returns a Pandas DataFrame.
     """
     df = pandas.read_csv(filename, na_filter=False, index_col=match_field)
-    if state:
-        # TODO: converting back to hex with "nacp_" prefix is a hack and should be properly generalised
-        df = df[df[match_field].isin(['nacp_{}'.format(UUID(int=int(x))) for x in state])]
     return df
 
 
@@ -76,7 +71,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
         logger.info('Loaded {} IDs from the last imported state.'.format(len(state)))
         if not state:
             return
-        processed = load_processed(processed_filename, match_field, state)
+        processed = load_processed(processed_filename, match_field)
         logger.info('Loaded {} processed results.'. format(len(processed)))
         state_list = sorted(list(state))  # Sorting is important to utilise B-Tree slicing in CouchDB
         first_result = db[state_list[0]]
