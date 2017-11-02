@@ -123,7 +123,7 @@ if __name__ == '__main__':
     parser.add_argument('-C', '--chunks', help='Number of chunks to run in a batch', type=int, default=200)
     parser.add_argument('-P', '--purge', help='Purge the DB before importing', action='store_true', default=False)
     parser.add_argument('-S', '--state', help='Save imported IDs to a provided file')
-    parser.add_argument('--corrected_file', help='File with IDs of corrected declarations')
+    parser.add_argument('-F', '--corrected_file', help='File with IDs of corrected declarations')
     args = parser.parse_args()
 
     db_config = {
