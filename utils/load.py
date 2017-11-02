@@ -146,4 +146,4 @@ if __name__ == '__main__':
         if db.exists():
             logger.info('Database {} created or already exists'.format(args.dbname))
 
-    import_all(args.docs_dir, args.corrected_file db_config, args.concurrency, args.chunks, args.state)
+    import_all(args.docs_dir, args.corrected_file, db_config, args.concurrency, args.chunks, args.state)
