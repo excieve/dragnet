@@ -19,7 +19,10 @@ def loader(profile, db_config, concurrency, chunks_per_process):
     assert loader_profile['type'] == 'nacp', 'Unsupported loader type'
 
     logger.info('Executing loader...')
-    import_all(loader_profile['input_dir'], db_config, concurrency, chunks_per_process, loader_profile['state_file'])
+    import_all(
+        loader_profile['input_dir'], loader_profile['corrected_file'],
+        db_config, concurrency, chunks_per_process, loader_profile['state_file']
+    )
 
 
 def runner(profile, db_config):

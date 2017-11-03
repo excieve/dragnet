@@ -7,6 +7,7 @@ from itertools import zip_longest
 from functools import partial
 from multiprocessing import Pool, log_to_stderr
 from time import perf_counter
+from csv import DictReader
 from uuid import UUID
 
 from cloudant import couchdb
@@ -62,7 +63,7 @@ def get_all_uuids(db_config):
     return set(str(UUID(int=int(x))) for x in ids if not x.startswith('_design/'))
 
 
-def import_all(docs_dir, db_config, concurrency, chunks_per_process, state_filename=None):
+def import_all(docs_dir, corrected_file, db_config, concurrency, chunks_per_process, state_filename=None):
     total_imported_docs, rates = 0, []
     jsons = glob2.iglob(os.path.join(docs_dir, "**/*.json"))
     all_uuids = get_all_uuids(db_config)
@@ -71,6 +72,15 @@ def import_all(docs_dir, db_config, concurrency, chunks_per_process, state_filen
     if state_filename:
         logger.info('Will be saving stored IDs (if any) to "{}".'.format(state_filename))
         state_file = open(state_filename, 'w+', encoding='utf-8')
+
+    corrected = set()
+    with open(corrected_file, "r") as fp:
+        r = DictReader(fp)
+        for l in r:
+            corrected.add(l["uuid"])
+
+    NacpDeclarationParser.corrected = corrected
+
     with Pool(concurrency) as pool:
         # Lazily consume batches of `chunks_per_process` for every process in the pool of `concurrency`
         results = pool.imap(partial(import_batch, db_config=db_config),
@@ -113,6 +123,7 @@ if __name__ == '__main__':
     parser.add_argument('-C', '--chunks', help='Number of chunks to run in a batch', type=int, default=200)
     parser.add_argument('-P', '--purge', help='Purge the DB before importing', action='store_true', default=False)
     parser.add_argument('-S', '--state', help='Save imported IDs to a provided file')
+    parser.add_argument('-F', '--corrected_file', help='File with IDs of corrected declarations')
     args = parser.parse_args()
 
     db_config = {
@@ -135,4 +146,4 @@ if __name__ == '__main__':
         if db.exists():
             logger.info('Database {} created or already exists'.format(args.dbname))
 
-    import_all(args.docs_dir, db_config, args.concurrency, args.chunks, args.state)
+    import_all(args.docs_dir, args.corrected_file, db_config, args.concurrency, args.chunks, args.state)

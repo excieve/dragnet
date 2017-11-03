@@ -4,6 +4,7 @@
     "loader": {
         "type": "nacp",
         "input_dir": "{datadir}/import/nacp",
+        "corrected_file": "{datadir}/import/nacp/corrected.csv",
         "state_file": "{datadir}/import/laststate"
     },
     "runner": {
