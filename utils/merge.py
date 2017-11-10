@@ -5,7 +5,7 @@ import pandas
 logger = logging.getLogger('dragnet.merge')
 
 
-def merge_csv(filename, inputs, on_field, nan_replacements=None, outlier_filters=None, only_years=None):
+def merge_csv(filename, inputs, on_field, nan_replacements=None, postprocess_funcs=None, only_years=None):
     logger.info('Merging files: {}'.format(inputs))
 
     df = pandas.read_csv(inputs[0])
@@ -28,11 +28,12 @@ def merge_csv(filename, inputs, on_field, nan_replacements=None, outlier_filters
                 col_replacement = nan_replacements['types'].get(dtype.name, None)
             df[column].fillna(col_replacement, inplace=True)
 
-    if outlier_filters:
-        logger.info('Adding outliers')
-        df['outlier'] = False
-        df.loc[outlier_filters(df), 'outlier'] = True
+    if postprocess_funcs:
+        for pp_func in postprocess_funcs:
+            logger.info('Applying post-processing function')
+            df = pp_func(df)
 
+    logger.info('Exporting to CSV')
     df.to_csv(filename, index=False, na_rep='null')
     logger.info('Merged output wrote to file "{}"'.format(filename))
 

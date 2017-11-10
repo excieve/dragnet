@@ -42,7 +42,7 @@
                 "columns": [
                     "id", "estate.declarant_land", "estate.declarant_other", "estate.family_land",
                     "estate.family_other", "estate.total_land", "estate.total_other", "estate.has_hidden",
-                    "estate.has_foreign"
+                    "estate.has_foreign", "estate.family_land_ratio", "estate.family_other_ratio"
                 ]
             },
             {
@@ -58,7 +58,7 @@
                 "output": "{datadir}/export/step_11_incomes_agg.csv",
                 "columns": [
                     "id", "incomes.declarant", "incomes.family", "incomes.total", "incomes.has_hidden",
-                    "incomes.has_foreign"
+                    "incomes.has_foreign", "incomes.family_ratio"
                 ]
             },
             {
@@ -66,7 +66,7 @@
                 "output": "{datadir}/export/step_12_assets_agg.csv",
                 "columns": [
                     "id", "assets.declarant", "assets.family", "assets.total", "assets.has_hidden",
-                    "assets.has_foreign"
+                    "assets.has_foreign", "assets.family_ratio"
                 ]
             },
             {
@@ -112,7 +112,7 @@
             "{datadir}/export/step_6_vehicles_agg.csv", "{datadir}/export/step_11_incomes_agg.csv",
             "{datadir}/export/step_12_assets_agg.csv"
         ],
-        "outlier_filters": "{datadir}/filters/outlier_agg_filter.py",
+        "postprocess": ["{datadir}/filters/outlier_agg_filter.py", "{datadir}/filters/agg_postprocess.py"],
         "only_years": []
     },
     "pump": {

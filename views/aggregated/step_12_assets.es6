@@ -139,9 +139,9 @@
         // Sometimes there's just broken JSON
         if (assets_doc.sizeAssets === undefined)
             continue;
-        if (assets_doc.is_foreign == true)
+        if (assets_doc.dnt_is_foreign == true)
             has_foreign = true;
-        if (assets_doc.sizeAssets_hidden) {
+        if (assets_doc.dnt_sizeAssets_hidden) {
             has_hidden = true;
             continue;
         }
@@ -165,5 +165,9 @@
         total_assets += val;
     }
 
-    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, has_hidden, has_foreign]);
+    let family_ratio = 0.0;
+    if (total_assets != 0.0)
+        family_ratio = family_assets / total_assets;
+
+    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, has_hidden, has_foreign, family_ratio]);
 }

@@ -185,7 +185,7 @@
             const right = subdoc.rights[right_key];
             if (!right)
                 continue;
-            if (ownership_types.indexOf(right.ownershipType_encoded) != -1) {
+            if (ownership_types.indexOf(right.dnt_ownershipType_encoded) != -1) {
                 return true;
             }
         }
@@ -213,7 +213,7 @@
             if (!isOwned(estate_doc))
                 continue;
 
-            switch (estate_doc.objectType_encoded) {
+            switch (estate_doc.dnt_objectType_encoded) {
                 case 'garage':
                     has_garage = true;
                     break;
@@ -270,7 +270,7 @@
                 continue;
             if (income_doc.sizeIncome === undefined)
                 continue;
-            if (present_types.indexOf(income_doc.objectType_encoded) != -1)
+            if (present_types.indexOf(income_doc.dnt_objectType_encoded) != -1)
                 total_presents += income_doc.sizeIncome;
             total_income += income_doc.sizeIncome;
         }
@@ -287,7 +287,7 @@
             if (val == null)
                 continue;
 
-            if (assets_doc.objectType_encoded == 'cash')
+            if (assets_doc.dnt_objectType_encoded == 'cash')
                 total_cash += val;
             total_assets += val;
         }
@@ -313,6 +313,8 @@
             if (typeof(expense_doc) != 'object')
                 continue;
             if (expense_doc.costAmount === undefined)
+                continue;
+            if (expense_doc.type != 1)
                 continue;
             total_expenses += expense_doc.costAmount;
         }
