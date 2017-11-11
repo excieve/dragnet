@@ -18,16 +18,17 @@ def iterate_ugly_dict(parent):
 
 def normalise_numerical(doc_id, parent, key, field):
     # Normalize numerical values to floats
+    hidden_key = 'dnt_{}_hidden'.format(field)
     try:
         parent[key][field] = float(str(parent[key][field]).strip().replace(',', '.'))
-        parent[key]['{}_hidden'.format(field)] = False
+        parent[key][hidden_key] = False
     except Exception:
         value = parent[key].get(field)
         if value:
             logger.info('Wrong "{}" field value for doc ID {}: {}'
                         .format(field, doc_id, value))
         parent[key][field] = 0
-        parent[key]['{}_hidden'.format(field)] = True
+        parent[key][hidden_key] = True
 
 
 def normalise_empty(parent, key, field):
@@ -43,16 +44,17 @@ def encode_categories(parent, key, field, mapping, new_field=None):
     if category is not None:
         value = mapping.get(str(category).lower().strip(), 'other')
         if new_field:
-            parent[key][new_field] = value
+            parent[key]['dnt_{}'.format(new_field)] = value
         else:
             parent[key][field] = value
 
 
-def encode_booleans(parent, key, field, new_field, tags, delete_original=True):
+def encode_booleans(parent, key, field, new_field, tags, delete_original=False):
+    new_field_key = 'dnt_{}'.format(new_field)
     tag_value = parent[key].get(field, None)
-    parent[key][new_field] = mappings.EMPTY_MARKER
+    parent[key][new_field_key] = mappings.EMPTY_MARKER
     if tag_value is not None:
-        parent[key][new_field] = str(tag_value).lower().strip() in tags
+        parent[key][new_field_key] = str(tag_value).lower().strip() in tags
         if delete_original:
             del parent[key][field]
 
@@ -75,11 +77,12 @@ def transform_bad_list(data, key_field):
 
 
 def pattern_classify(parent, new_field, mapping):
-    parent[new_field] = 'Без категорії'
+    new_field_key = 'dnt_{}'.format(new_field)
+    parent[new_field_key] = 'Без категорії'
     for field, pattern, group in mapping:
         field_value = parent.get(field, None)
         if field_value is not None and re.search(pattern, field_value.strip().lower()) is not None:
-            parent[new_field] = group
+            parent[new_field_key] = group
             break
 
 
@@ -91,7 +94,7 @@ def preprocess_nacp_doc(source):
         if 'workPlace' in step_1 or 'workPost' in step_1:
             pattern_classify(step_1, 'organization_group', mappings.WORK_ORGANISATION_REGEXPS)
         else:
-            step_1['organization_group'] = mappings.EMPTY_MARKER
+            step_1['dnt_organization_group'] = mappings.EMPTY_MARKER
     step_2 = doc.get('step_2', None)
     if is_empty_step(step_2):
         del doc['step_2']

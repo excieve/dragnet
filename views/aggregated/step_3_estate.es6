@@ -21,20 +21,20 @@
             continue;
         if (estate_doc.country != '1')
             has_foreign = true;
-        if (estate_doc.totalArea_hidden) {
+        if (estate_doc.dnt_totalArea_hidden) {
             has_hidden = true;
             continue;
         }
 
-        const estate_key = `${estate_doc.ua_cityType}.${estate_doc.totalArea}.${estate_doc.objectType_encoded}`;
+        const estate_key = `${estate_doc.ua_cityType}.${estate_doc.totalArea}.${estate_doc.dnt_objectType_encoded}`;
         if (estate_doc.person == '1') {
-            if (estate_doc.objectType_encoded == 'land')
+            if (estate_doc.dnt_objectType_encoded == 'land')
                 declarant_land += estate_doc.totalArea;
             else
                 declarant_other += estate_doc.totalArea;
         } else if (String(estate_doc.person) in (nacp_doc.step_2 || {})) {
             if (!seen_family_estates.has(estate_key)) {
-                if (estate_doc.objectType_encoded == 'land')
+                if (estate_doc.dnt_objectType_encoded == 'land')
                     family_land += estate_doc.totalArea;
                 else
                     family_other += estate_doc.totalArea;
@@ -43,7 +43,7 @@
         }
 
         if (!seen_all_estates.has(estate_key)) {
-            if (estate_doc.objectType_encoded == 'land')
+            if (estate_doc.dnt_objectType_encoded == 'land')
                 total_land += estate_doc.totalArea;
             else
                 total_other += estate_doc.totalArea;
@@ -51,6 +51,14 @@
         }
     }
 
+    let family_land_ratio = 0.0;
+    if (total_land != 0.0)
+        family_land_ratio = family_land / total_land;
+
+    let family_other_ratio = 0.0;
+    if (total_other != 0.0)
+        family_other_ratio = family_other / total_other;
+
     emit(doc._id, [doc.doc_uuid, declarant_land, declarant_other, family_land, family_other, total_land, total_other, has_hidden,
-                   has_foreign]);
+                   has_foreign, family_land_ratio, family_other_ratio]);
 }

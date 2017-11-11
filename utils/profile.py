@@ -63,17 +63,19 @@ def merger(profile):
     assert merger_profile['type'] == 'csv', 'Unsupported merger type'
 
     logger.info('Executing merger...')
-    # Load and exec a Python module containing the Pandas filters
-    filter_func = None
-    if merger_profile.get('outlier_filters'):
-        logger.info('Loading Pandas filters for outlier detection.')
-        spec = importlib.util.spec_from_file_location('outlier_filters', merger_profile['outlier_filters'])
-        outlier_filters = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(outlier_filters)
-        filter_func = outlier_filters.filter_func
+    # Load and exec Python modules containing the Pandas functions
+    postprocess_funcs = []
+    if merger_profile.get('postprocess'):
+        logger.info('Loading Pandas post-processing functions.')
+        for i, pp_filename in enumerate(merger_profile['postprocess']):
+            logger.info('Loading: {}'.format(pp_filename))
+            spec = importlib.util.spec_from_file_location('postprocess_module_{}'.format(i), pp_filename)
+            postprocess_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(postprocess_module)
+            postprocess_funcs.append(postprocess_module.postprocess_func)
 
     merge_csv(merger_profile['output'], merger_profile['inputs'], merger_profile['field'],
-              merger_profile.get('nan_replacements'), filter_func, merger_profile.get('only_years'))
+              merger_profile.get('nan_replacements'), postprocess_funcs, merger_profile.get('only_years'))
 
 
 def pump(profile, db_config, es_endpoint):

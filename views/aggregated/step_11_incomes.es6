@@ -14,9 +14,9 @@
             continue;
         if (income_doc.sizeIncome === undefined)
             continue;
-        if (income_doc.is_foreign == true)
+        if (income_doc.dnt_is_foreign == true)
             has_foreign = true;
-        if (income_doc.sizeIncome_hidden) {
+        if (income_doc.dnt_sizeIncome_hidden) {
             has_hidden = true;
             continue;
         }
@@ -28,5 +28,9 @@
         total_income += income_doc.sizeIncome;
     }
 
-    emit(doc._id, [doc.doc_uuid, declarant_income, family_income, total_income, has_hidden, has_foreign]);
+    let family_ratio = 0.0;
+    if (total_income != 0.0)
+        family_ratio = family_income / total_income;
+
+    emit(doc._id, [doc.doc_uuid, declarant_income, family_income, total_income, has_hidden, has_foreign, family_ratio]);
 }
