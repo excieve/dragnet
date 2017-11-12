@@ -2,7 +2,7 @@ def postprocess_func(df):
     df['outlier'] = False
 
     q1 = ((df['incomes.total'] > 100000000) | (df['estate.total_other'] > 5000))\
-        & (df['name_post'].str.contains('депутат', case=False))
+        & (~df['name_post'].str.contains('депутат', case=False))
     q2 = (df['estate.total_land'] > 20000000)
     q3 = (df['estate.total_other'] > 20000)
     q4 = (df['vehicles.total_cost'] > 10000000) & (df['lux_cars_flag'] == False)  # noqa
