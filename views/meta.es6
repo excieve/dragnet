@@ -8,7 +8,7 @@
           name_post = `${full_name}, ${nacp_doc.step_1.workPost}, ${nacp_doc.step_1.workPlace}`,
           has_family = typeof(nacp_doc.step_2) == 'object';
     // Quick fix to have a little less categories
-    let mapped_region = doc.general.post.region;
+    let mapped_region = doc.general.post.actual_region;
     if (mapped_region == 'Севастополь')
         mapped_region = 'Кримська Автономна Республіка';
     emit(doc._id,
