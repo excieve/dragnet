@@ -20,10 +20,10 @@
         if (!vehicle_doc.brand && !vehicle_doc.model)
             has_hidden = true;
 
-        const vehicle_key = `${vehicle_doc.brand}.${vehicle_doc.model}.${vehicle_doc.graduationYear}`
+        const vehicle_key = `${vehicle_doc.brand}|${vehicle_doc.model}|${vehicle_doc.graduationYear}`
             .toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ")
-            .replace(/\s+/g, " ");
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+            .replace(/\s+/g, "");
 
         if (vehicle_doc.person == '1') {
             declarant_cost += vehicle_doc.costDate;
