@@ -79,11 +79,12 @@ def transform_bad_list(data, key_field):
 def pattern_classify(parent, new_field, mapping):
     new_field_key = 'dnt_{}'.format(new_field)
     parent[new_field_key] = 'Без категорії'
-    for field, pattern, group in mapping:
-        field_value = parent.get(field, None)
-        if field_value is not None and re.search(pattern, field_value.strip().lower()) is not None:
-            parent[new_field_key] = group
-            break
+    for fields, pattern, group in mapping:
+        for field in fields:
+            field_value = parent.get(field, None)
+            if field_value is not None and re.search(pattern, field_value.strip().lower()) is not None:
+                parent[new_field_key] = group
+                break
 
 
 def preprocess_nacp_doc(source):
