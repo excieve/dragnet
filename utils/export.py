@@ -39,11 +39,12 @@ def export_view(filename, state_filename, design_doc_name, view_name, db_config,
             view_writer = csv.writer(csvfile)
             if mappings:
                 view_writer.writerow(mappings)
-            # Instead of using offsets and limits to get batches we're utilising B-Tree properly:
-            # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
-            # This scales very well as the DB never needs to scan over all the previous nodes.
 
+            # If state is absent or big enough, let's just export everything
             if state is None or len(state) > 20000:
+                # Instead of using offsets and limits to get batches we're utilising B-Tree properly:
+                # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
+                # This scales very well as the DB never needs to scan over all the previous nodes.
                 rows = first_result['rows']
                 if rows:
                     start_key = rows[0]['key']
@@ -59,7 +60,7 @@ def export_view(filename, state_filename, design_doc_name, view_name, db_config,
                                     rows_exported += 1
                                 logger.info('Exported {} rows.'.format(rows_exported))
             else:
-                with view.custom_result(keys=state, stale='ok') as result:
+                with view.custom_result(keys=list(state), stale='ok') as result:
                     for row in result:
                         write_row(row, view_writer)
                         rows_exported += 1
