@@ -30,6 +30,7 @@
     },
     "exporter": {
         "type": "csv",
+        "state_file": "{datadir}/import/laststate",
         "mappings": [
             {
                 "view": "meta.meta",
