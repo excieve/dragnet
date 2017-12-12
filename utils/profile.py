@@ -55,7 +55,14 @@ def exporter(profile, db_config):
     logger.info('Executing exporters...')
     for mapping in exporter_profile['mappings']:
         design_doc, view = mapping['view'].split('.')
-        export_view(mapping['output'], design_doc, view, db_config, mapping.get('columns'))
+        export_view(
+            mapping['output'],
+            exporter_profile.get("state_file"),
+            design_doc,
+            view,
+            db_config,
+            mapping.get('columns')
+        )
 
 
 def merger(profile):

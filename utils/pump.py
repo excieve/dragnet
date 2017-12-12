@@ -7,6 +7,8 @@ from cloudant import couchdb
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import parallel_bulk
 
+from misc import load_state
+
 
 logger = logging.getLogger('dragnet.pump')
 
@@ -17,16 +19,6 @@ def load_processed(filename, match_field):
     """
     df = pandas.read_csv(filename, na_filter=False, index_col=match_field)
     return df
-
-
-def load_state(filename):
-    """
-    Loads last imported state and returns it as a set for efficient existence queries.
-    """
-    ids = []
-    with open(filename, 'r', encoding='utf-8') as state_file:
-        ids = state_file.read().splitlines()
-    return set(ids)
 
 
 def map_row_to_esop(doc, state, processed, match_field, container_field, es_config):
@@ -59,6 +51,18 @@ def map_row_to_esop(doc, state, processed, match_field, container_field, es_conf
     }
 
     return op
+
+
+def pump_it(es, bulk_accumulator):
+    rows_pumped = 0
+    # TODO: make threads and chunks configurable
+    for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=300):
+        if success:
+            rows_pumped += 1
+        else:
+            logger.warning('Pumping documents failed: {}'.format(info))
+
+    return rows_pumped
 
 
 def csv_to_elasticsearch(processed_filename, state_filename, match_field, container_field, db_config, es_config):
@@ -101,13 +105,8 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                                 # Reached the end of state, no point looking further
                                 reached_end = True
                                 break
-                        # Consume the parallel generator in full
-                        # TODO: make threads and chunks configurable
-                        for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=300):
-                            if success:
-                                rows_pumped += 1
-                            else:
-                                logger.warning('Pumping documents failed: {}'.format(info))
+
+                        rows_pumped += pump_it(es, bulk_accumulator)
                         logger.info('Pump processed {} rows.'.format(rows_pumped))
 
                         bulk_accumulator = []
@@ -117,12 +116,8 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                     map_row_to_esop(row['doc'], state, processed, match_field, container_field, es_config)
                     for row in result
                 ]
-                # TODO: make threads and chunks configurable
-                for success, info in parallel_bulk(es, bulk_accumulator, thread_count=16, chunk_size=300):
-                    if success:
-                        rows_pumped += 1
-                    else:
-                        logger.warning('Pumping documents failed: {}'.format(info))
+
+                rows_pumped += pump_it(es, bulk_accumulator)
                 logger.info('Pump processed {} rows.'.format(rows_pumped))
 
         logger.info('Total pumped/state/processing: {}/{}/{}.'.format(rows_pumped, len(state), len(processed)))
