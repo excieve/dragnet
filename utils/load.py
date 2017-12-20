@@ -2,6 +2,7 @@ import logging
 import argparse
 import glob2
 import os.path
+from shutil import copyfile
 
 from itertools import zip_longest
 from functools import partial
@@ -71,6 +72,12 @@ def import_all(docs_dir, corrected_file, db_config, concurrency, chunks_per_proc
     state_file = None
     if state_filename:
         logger.info('Will be saving stored IDs (if any) to "{}".'.format(state_filename))
+
+        if os.path.isfile(state_filename) and os.path.getsize(state_filename) > 0:
+            state_file_backup = state_filename + ".bak"
+            logger.info('Backing up existing non-empty statefile under name "{}".'.format(state_file_backup))
+            copyfile(state_filename, state_file_backup)
+
         state_file = open(state_filename, 'w+', encoding='utf-8')
 
     corrected = set()

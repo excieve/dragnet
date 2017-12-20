@@ -111,7 +111,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
 
                         bulk_accumulator = []
         else:
-            with db.custom_result(keys=list(state), include_docs=True) as result:
+            with db.custom_result(keys=list(state), include_docs=True, page_size=4800) as result:
                 bulk_accumulator = [
                     map_row_to_esop(row['doc'], state, processed, match_field, container_field, es_config)
                     for row in result

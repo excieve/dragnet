@@ -297,7 +297,7 @@ class NacpDeclarationParser(object):
         resp["declaration"]["basename"] = os.path.basename(base_fname)
 
         resp["intro"]["corrected"] = id_ in cls.corrected
-        resp["intro"]["date"] = str(cls.parse_date(created_date).year)
+        resp["intro"]["date"] = cls.parse_date(created_date).isoformat()
 
         if "declarationType" not in data["step_0"] or "changesYear" in data["step_0"]:
             resp["intro"]["doc_type"] = "Форма змін"
