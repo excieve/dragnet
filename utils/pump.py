@@ -90,7 +90,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
                 map_row_to_esop(first_result, state, processed, match_field, container_field, es_config)
             ]
 
-            with db.custom_result(skip=1, limit=4800, include_docs=True, page_size=4800) as result:
+            with db.custom_result(skip=1, limit=4800, include_docs=True) as result:
                 reached_end = False
                 while not reached_end:
                     rows = result[start_key:]

@@ -50,7 +50,7 @@ def export_view(filename, state_filename, design_doc_name, view_name, db_config,
                     start_key = rows[0]['key']
                     write_row(rows[0], view_writer)
                     rows_exported += 1
-                    with view.custom_result(skip=1, limit=20000, stale='ok', page_size=20000) as result:
+                    with view.custom_result(skip=1, limit=20000, stale='ok') as result:
                         while rows:
                             rows = result[start_key:]
                             if rows:

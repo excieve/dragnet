@@ -20,6 +20,10 @@ def merge_csv(filename, inputs, on_field, nan_replacements=None, postprocess_fun
         logger.info('Filtering out irrelevant years')
         df = df[df['year'].isin(only_years)]
 
+    if df.empty:
+        logger.warning('Resulting CSV is empty')
+        return
+
     if nan_replacements:
         logger.info('Replacing NaNs with predefined values')
         for column, dtype in df.dtypes.items():
