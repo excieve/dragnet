@@ -9,7 +9,7 @@ from load import get_all_uuids
 logger = log_to_stderr()
 
 def export_all(db_config, state_filename):
-    all_uuids = get_all_uuids(db_config)
+    all_uuids = get_all_uuids(db_config, base_16=False)
     with open(state_filename, "w") as fp:
         fp.writelines("{}\n".format(x) for x in all_uuids)
 
