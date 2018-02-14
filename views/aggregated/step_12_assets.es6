@@ -210,11 +210,11 @@
 
         let val = assets_doc.sizeAssets;
         if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != 'UAH') {
-            let exchange_table = exchange_rates_2015;
+            let exchange_table = exchange_rates_2017;
+            if (nacp_doc.step_0.declarationYear1 == '2015')
+                exchange_table = exchange_rates_2015;
             if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
-            if (nacp_doc.step_0.declarationYear1 == '2017')
-                exchange_table = exchange_rates_2017;
             if (!(assets_doc.assetsCurrency in exchange_table)) {
                 log(`${assets_doc.assetsCurrency} currency code is not known`);
                 continue;
