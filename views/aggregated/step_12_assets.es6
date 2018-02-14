@@ -126,6 +126,68 @@
         "UYU": 0.9285678007,
         "GHS": 6.359669778
     }
+    const exchange_rates_2017 = {
+        "UAH": 1,
+        "AUD": 21.849592,
+        "THB": 0.860423,
+        "BYN": 14.22782,
+        "BGN": 17.126201,
+        "KRW": 0.0262427,
+        "HKD": 3.591078,
+        "DKK": 4.498747,
+        "USD": 28.067223,
+        "EUR": 33.495424,
+        "EGP": 1.583348,
+        "JPY": 0.248593,
+        "PLN": 8.011726,
+        "INR": 0.4380033,
+        "IRR": 0.000778,
+        "CAD": 22.257575,
+        "HRK": 4.459219,
+        "MXN": 1.427329,
+        "MDL": 1.641339,
+        "ILS": 8.068853,
+        "NZD": 19.871514,
+        "NOK": 3.394692,
+        "RUB": 0.48703,
+        "RON": 7.20022,
+        "IDR": 0.00206955,
+        "SGD": 20.976593,
+        "XDR": 39.875068,
+        "KZT": 0.084716,
+        "TRY": 7.368271,
+        "HUF": 0.1079453,
+        "GBP": 37.73367,
+        "CZK": 1.306119,
+        "SEK": 3.402209,
+        "CHF": 28.618783,
+        "CNY": 4.29423,
+        "AZN": 15.973089,
+        "DZD": 0.236304,
+        "BRL": 8.321342,
+        "AMD": 0.05607237,
+        "AED": 7.393773,
+        "VND": 0.0011955,
+        "IQD": 0.023213,
+        "GEL": 9.986338,
+        "LBP": 0.0180259,
+        "MYR": 6.63908,
+        "MAD": 2.884563,
+        "TWD": 0.905889,
+        "PKR": 0.257866,
+        "ZAR": 1.99531,
+        "SAR": 7.241367,
+        "RSD": 0.270046,
+        "KGS": 0.389387,
+        "TJS": 3.079034,
+        "BDT": 0.331897,
+        "TND": 10.959661,
+        "TMT": 7.758814,
+        "UZS": 0.003354,
+        "QAR": 7.718486325,
+        "UYU": 0.9742706225,
+        "GHS": 6.202856283,
+    }
 
     let declarant_assets = 0.0,
         family_assets = 0.0,
@@ -151,6 +213,8 @@
             let exchange_table = exchange_rates_2015;
             if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
+            if (nacp_doc.step_0.declarationYear1 == '2017')
+                exchange_table = exchange_rates_2017;
             if (!(assets_doc.assetsCurrency in exchange_table)) {
                 log(`${assets_doc.assetsCurrency} currency code is not known`);
                 continue;
