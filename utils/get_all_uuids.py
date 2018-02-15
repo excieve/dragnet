@@ -1,12 +1,7 @@
-import logging
 import argparse
-from multiprocessing import log_to_stderr
-
 from cloudant import couchdb
+from load import get_all_uuids, logger
 
-from load import get_all_uuids
-
-logger = log_to_stderr()
 
 def export_all(db_config, state_filename):
     all_uuids = get_all_uuids(db_config, base_16=False)
@@ -15,9 +10,6 @@ def export_all(db_config, state_filename):
 
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    logging.getLogger().setLevel(logging.INFO)
-
     parser = argparse.ArgumentParser(description='Get all uuids of documents from couchdb to text file')
     parser.add_argument('-u', '--username', help='CouchDB username')
     parser.add_argument('-p', '--password', help='CouchDB password')
@@ -33,11 +25,7 @@ if __name__ == '__main__':
         'name': args.dbname
     }
 
-    # Ensure our DB exists before actually importing
-    with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
-        db = couch[args.dbname]
-        db = couch.create_database(args.dbname, throw_on_exists=False)
-        if db.exists():
-            logger.info('Database {} created or already exists'.format(args.dbname))
-
-    export_all(db_config, args.state)
+    try:
+        export_all(db_config, args.state)
+    except KeyError:
+        logger.error("DB config is wrong or DB doesn't exists")
