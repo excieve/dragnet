@@ -1,7 +1,7 @@
 import re
 import json
 import os.path
-import dpath.util
+import jmespath
 import logging
 
 from string import capwords
@@ -56,7 +56,10 @@ def replace_arg(request, key, value):
 def concat_fields(resp, fields):
     out = list()
     for f in fields:
-        out.extend(dpath.util.values(resp, f, '.'))
+        res = f.search(resp)
+        if not isinstance(res, (list, tuple, dict)):
+            res = [res]
+        out.extend(res)
     return " ".join(map(str, out))
 
 
@@ -201,18 +204,18 @@ class NacpDeclarationParser(object):
     ]
 
     INDEX_CARD_FIELDS = [
-        "general.last_name",
-        "general.name",
-        "general.patronymic",
-        "general.full_name",
-        "general.post.post",
-        "general.post.office",
-        "general.post.region",
-        "general.post.actual_region",
-        "intro.declaration_year",
-        "intro.doc_type",
-        "declaration.source",
-        "declaration.url"
+        jmespath.compile("general.last_name"),
+        jmespath.compile("general.name"),
+        jmespath.compile("general.patronymic"),
+        jmespath.compile("general.full_name"),
+        jmespath.compile("general.post.post"),
+        jmespath.compile("general.post.office"),
+        jmespath.compile("general.post.region"),
+        jmespath.compile("general.post.actual_region"),
+        jmespath.compile("intro.declaration_year"),
+        jmespath.compile("intro.doc_type"),
+        jmespath.compile("declaration.source"),
+        jmespath.compile("declaration.url"),
     ]
 
     corrected = set()

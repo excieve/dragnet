@@ -54,14 +54,17 @@ def grouper(iterable, n, fillvalue=None):
     return zip_longest(*args, fillvalue=fillvalue)
 
 
-def get_all_uuids(db_config):
+def get_all_uuids(db_config, base_16=True):
     ids = []
     with couchdb(db_config['user'], db_config['password'], url=db_config['url']) as couch:
         db = couch[db_config['name']]
         # TODO: Grabs ALL keys in the DB in one request, it's probably not very scalable -- revise if causing troubles
         ids = db.keys(remote=True)
     # Transform base-10 UUID to base-16 and omit design documents
-    return set(str(UUID(int=int(x))) for x in ids if not x.startswith('_design/'))
+    if base_16:
+        return set(str(UUID(int=int(x))) for x in ids if not x.startswith('_design/'))
+    else:
+        return set(str(x) for x in ids if not x.startswith('_design/'))
 
 
 def import_all(docs_dir, corrected_file, db_config, concurrency, chunks_per_process, state_filename=None):
