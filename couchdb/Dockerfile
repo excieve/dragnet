@@ -1,4 +1,4 @@
-FROM klaemo/couchdb:2.0.0
+FROM apache/couchdb:2.1.1
 # Clean original build artefacts and compile couch-chakra
 RUN rm -rf /etc/apt/sources.list.d/* &&\
     echo 'deb http://ftp.debian.org/debian jessie-backports main' >> /etc/apt/sources.list

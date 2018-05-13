@@ -5,7 +5,7 @@ COPY requirements.txt /usr/local/dragnet
 WORKDIR /usr/local/dragnet
 RUN pip3 install -r requirements.txt
 COPY . /usr/local/dragnet
-RUN mkdir /mnt/dragnet_data
-RUN mkdir /mnt/declarations_bank
-RUN mkdir /usr/local/dragnet/views
+RUN mkdir -p /mnt/dragnet_data \
+ && mkdir -p /mnt/declarations_bank \
+ && mkdir -p /usr/local/dragnet/views
 VOLUME ["/mnt/dragnet_data", "/mnt/declarations_bank", "/usr/local/dragnet/views"]

@@ -192,6 +192,7 @@
     let declarant_assets = 0.0,
         family_assets = 0.0,
         total_assets = 0.0,
+        lent_assets = 0.0,
         has_hidden = false,
         has_foreign = false;
     for (let key in nacp_doc.step_12) {
@@ -226,6 +227,10 @@
             declarant_assets += val;
         else if (String(assets_doc.person) in (nacp_doc.step_2 || {}))
             family_assets += val;
+
+        if (assets_doc.dnt_objectType_encoded == 'lend')
+            lent_assets += val;
+
         total_assets += val;
     }
 
@@ -233,5 +238,6 @@
     if (total_assets != 0.0)
         family_ratio = family_assets / total_assets;
 
-    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, has_hidden, has_foreign, family_ratio]);
+    emit(doc._id, [doc.doc_uuid, declarant_assets, family_assets, total_assets, lent_assets, has_hidden, has_foreign,
+                   family_ratio]);
 }
