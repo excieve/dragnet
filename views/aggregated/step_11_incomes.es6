@@ -6,6 +6,7 @@
     let declarant_income = 0.0,
         family_income = 0.0,
         total_income = 0.0,
+        total_prizes = 0.0,
         has_hidden = false,
         has_foreign = false;
     for (let key in nacp_doc.step_11) {
@@ -25,6 +26,8 @@
             declarant_income += income_doc.sizeIncome;
         else if (String(income_doc.person) in (nacp_doc.step_2 || {}))
             family_income += income_doc.sizeIncome;
+        if (income_doc.dnt_objectType_encoded == 'prize')
+            total_prizes += income_doc.sizeIncome;
         total_income += income_doc.sizeIncome;
     }
 
@@ -32,5 +35,6 @@
     if (total_income != 0.0)
         family_ratio = family_income / total_income;
 
-    emit(doc._id, [doc.doc_uuid, declarant_income, family_income, total_income, has_hidden, has_foreign, family_ratio]);
+    emit(doc._id, [doc.doc_uuid, declarant_income, family_income, total_income, total_prizes, has_hidden, has_foreign,
+                   family_ratio]);
 }

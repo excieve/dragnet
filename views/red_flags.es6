@@ -211,27 +211,40 @@
     // Thresholds
     const assets_to_income_fraction = 10,
           income_presents_to_total_fraction = 0.75,
+          income_presents_to_total_fraction_50 = 0.5,
           expenses_to_other_fraction = 3,
           liabilities_to_other_fraction = 2,
-          total_cash_threshold = 5000000;
+          total_cash_threshold = 5000000,
+          total_cash_threshold_500k = 500000,
+          lent_assets_threshold = 300000;
 
     // Flags
     let assets_to_income = false,
         expenses_to_inc_and_assets = false,
         liabilities_to_inc_and_assets = false,
+        loan_shark = false,
         income_presents_to_total = false,
+        income_presents_to_total_50 = false,
+        income_has_prizes = false,
         jar_of_cash = false,
+        jar_of_pocket_cash = false,
         garage_wo_car = false,
         has_luxury_cars = false,
         has_luxury_cars_v2 = false,
         vehicle_purch_no_cost = false,
         estate_purch_no_cost = false,
-        house_no_land = false;
+        house_no_land = false,
+        estate_has_hidden_cost = false,
+        corprights_has_foreign = false,
+        has_foreign_bank_acc = false,
+        hidden_in_family = false;
     // Helper values
     let total_income = 0.0,
         total_presents = 0.0,
+        total_prizes = 0.0,
         total_expenses = 0.0,
         total_assets = 0.0,
+        lent_assets = 0.0,
         total_cash = 0.0,
         total_liabilities = 0.0,
         has_garage = false,
@@ -293,6 +306,22 @@
             const owning_date = estate_doc.owningDate.split('.');
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !estate_doc.costDate)
                 estate_purch_no_cost = true;
+
+            if (estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden)
+                estate_has_hidden_cost = true;
+
+            if (String(estate_doc.person) in (nacp_doc.step_2 || {}) && (estate_doc.dnt_costDate_hidden || estate_doc.dnt_costAssessment_hidden))
+                hidden_in_family = true;
+        }
+    }
+    if (nacp_doc.step_5) {
+        for (let key in nacp_doc.step_5) {
+            const valuables_doc = nacp_doc.step_5[key];
+            if (typeof(valuables_doc) != 'object')
+                continue;
+
+            if (String(valuables_doc.person) in (nacp_doc.step_2 || {}) && valuables_doc.dnt_costDateUse_hidden)
+                hidden_in_family = true;
         }
     }
     if (nacp_doc.step_6) {
@@ -307,6 +336,9 @@
             const owning_date = vehicle_doc.owningDate.split('.');
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !vehicle_doc.costDate)
                 vehicle_purch_no_cost = true;
+
+            if (String(vehicle_doc.person) in (nacp_doc.step_2 || {}) && (vehicle_doc.dnt_costDate_hidden || vehicle_doc.dnt_graduationYear_hidden))
+                hidden_in_family = true;
 
             let full_name = '';
             if (vehicle_doc.brand)
@@ -327,15 +359,42 @@
             }
         }
     }
+    if (nacp_doc.step_7) {
+        for (let key in nacp_doc.step_7) {
+            const securities_doc = nacp_doc.step_7[key];
+            if (typeof(securities_doc) != 'object')
+                continue;
+
+            if (String(securities_doc.person) in (nacp_doc.step_2 || {}) && (securities_doc.dnt_amount_hidden || securities_doc.dnt_cost_hidden))
+                hidden_in_family = true;
+        }
+    }
+    if (nacp_doc.step_8) {
+        for (let key in nacp_doc.step_8) {
+            const corp_doc = nacp_doc.step_8[key];
+            if (typeof(corp_doc) != 'object')
+                continue;
+            if (corp_doc.country != '1')
+                corprights_has_foreign = true;
+            if (String(corp_doc.person) in (nacp_doc.step_2 || {}) && corp_doc.dnt_cost_hidden)
+                hidden_in_family = true;
+        }
+    }
     if (nacp_doc.step_11) {
         for (let key in nacp_doc.step_11) {
             const income_doc = nacp_doc.step_11[key];
             if (typeof(income_doc) != 'object')
                 continue;
+
+            if (String(income_doc.person) in (nacp_doc.step_2 || {}) && income_doc.dnt_sizeIncome_hidden)
+                hidden_in_family = true;
+
             if (income_doc.sizeIncome === undefined)
                 continue;
             if (present_types.indexOf(income_doc.dnt_objectType_encoded) != -1)
                 total_presents += income_doc.sizeIncome;
+            if (income_doc.dnt_objectType_encoded == 'prize')
+                total_prizes += income_doc.sizeIncome;
             total_income += income_doc.sizeIncome;
         }
     }
@@ -344,6 +403,13 @@
             const assets_doc = nacp_doc.step_12[key];
             if (typeof(assets_doc) != 'object')
                 continue;
+
+            if (assets_doc.dnt_objectType_encoded == 'bank' && assets_doc.dnt_is_foreign)
+                has_foreign_bank_acc = true;
+
+            if (String(assets_doc.person) in (nacp_doc.step_2 || {}) && assets_doc.dnt_sizeAssets_hidden)
+                hidden_in_family = true;
+
             if (assets_doc.sizeAssets === undefined)
                 continue;
 
@@ -353,6 +419,8 @@
 
             if (assets_doc.dnt_objectType_encoded == 'cash')
                 total_cash += val;
+            else if (assets_doc.dnt_objectType_encoded == 'lend')
+                lent_assets += val;
             total_assets += val;
         }
     }
@@ -361,6 +429,10 @@
             const liability_doc = nacp_doc.step_13[key];
             if (typeof(liability_doc) != 'object')
                 continue;
+
+            if (String(liability_doc.person) in (nacp_doc.step_2 || {}) && liability_doc.dnt_sizeObligation_hidden)
+                hidden_in_family = true;
+
             if (liability_doc.sizeObligation === undefined)
                 continue;
 
@@ -376,6 +448,10 @@
             const expense_doc = nacp_doc.step_14[key];
             if (typeof(expense_doc) != 'object')
                 continue;
+
+            if (String(expense_doc.person) in (nacp_doc.step_2 || {}) && expense_doc.dnt_costAmount_hidden)
+                hidden_in_family = true;
+
             if (expense_doc.costAmount === undefined)
                 continue;
             if (expense_doc.type != 1)
@@ -386,7 +462,9 @@
 
     if (total_income != 0) {
         assets_to_income = (total_assets / total_income) > assets_to_income_fraction;
-        income_presents_to_total = (total_presents / total_income) > income_presents_to_total_fraction;
+        const presents_fraction = total_presents / total_income;
+        income_presents_to_total = presents_fraction > income_presents_to_total_fraction;
+        income_presents_to_total_50 = presents_fraction > income_presents_to_total_fraction_50;
     }
     const total_inc_and_assets = total_income + total_assets;
     if (total_inc_and_assets != 0) {
@@ -394,11 +472,16 @@
         liabilities_to_inc_and_assets = (total_liabilities / total_inc_and_assets) > liabilities_to_other_fraction;
     }
     jar_of_cash = total_cash > total_cash_threshold;
+    jar_of_pocket_cash = total_cash > total_cash_threshold_500k;
     garage_wo_car = has_garage && !has_vehicle;
     house_no_land = has_house && !has_land;
+    income_has_prizes = total_prizes > 0;
+    loan_shark = lent_assets > lent_assets_threshold;
 
     emit(doc._id, [doc.doc_uuid, assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
                    liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
-                   has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost,
+                   has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost, estate_has_hidden_cost,
+                   corprights_has_foreign, has_foreign_bank_acc, income_has_prizes, loan_shark, jar_of_pocket_cash,
+                   income_presents_to_total_50, hidden_in_family,
                    total_expenses, total_liabilities, total_cash, total_presents]);
 }

@@ -58,7 +58,7 @@
                 "view": "aggregated.step_11_incomes",
                 "output": "{datadir}/export/step_11_incomes_agg.csv",
                 "columns": [
-                    "id", "incomes.declarant", "incomes.family", "incomes.total", "incomes.has_hidden",
+                    "id", "incomes.declarant", "incomes.family", "incomes.total", "incomes.prize", "incomes.has_hidden",
                     "incomes.has_foreign", "incomes.family_ratio"
                 ]
             },
@@ -66,7 +66,7 @@
                 "view": "aggregated.step_12_assets",
                 "output": "{datadir}/export/step_12_assets_agg.csv",
                 "columns": [
-                    "id", "assets.declarant", "assets.family", "assets.total", "assets.has_hidden",
+                    "id", "assets.declarant", "assets.family", "assets.total", "assets.lent", "assets.has_hidden",
                     "assets.has_foreign", "assets.family_ratio"
                 ]
             },
@@ -77,6 +77,8 @@
                     "id", "assets_to_income_flag", "income_presents_to_total_flag", "expenses_to_inc_and_assets_flag",
                     "liabilities_to_inc_and_assets_flag", "cash_flag", "garage_wo_car_flag", "house_no_land_flag",
                     "lux_cars_flag", "lux_cars_flag_v2", "vehicle_purch_no_cost_flag", "estate_purch_no_cost_flag",
+                    "estate_has_hidden_cost", "corprights_abroad_flag", "bank_accounts_abroad_flag", "income_prize_fact",
+                    "assets_lend_3rd_parties", "cash_flag_500k", "income_presents_to_total_flag_50", "family_member_did_not_provide_information_flag",
                     "expenses.total", "liabilities.total", "assets.cash.total", "incomes.presents.all"
                 ]
             }
