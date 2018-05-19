@@ -3,6 +3,7 @@ import argparse
 import logging
 import subprocess
 import time
+import json
 
 from cloudant import couchdb
 
@@ -89,7 +90,10 @@ def execute_view(couch, view):
         for t in tasks:
             diff_t = float(t['updated_on'] - t['started_on'])
             if diff_t > 0:
-                changes_per_sec.append(float(t['changes_done']) / diff_t)
+                if 'changes_done' in t:
+                    changes_per_sec.append(float(t['changes_done']) / diff_t)
+                else:
+                    logger.warning("Unexpected tasks results: {}".format(json.dumps(t, indent=4)))
         all_changes_per_sec.append(sum(changes_per_sec))
         all_changes_per_sec_one_task.append(changes_per_sec[0])
         logger.info('c/s = {:.2f} ({} tasks), {:.2f} (one task); changes = {}'
