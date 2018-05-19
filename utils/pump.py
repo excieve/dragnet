@@ -85,7 +85,7 @@ def csv_to_elasticsearch(processed_filename, state_filename, match_field, contai
         del state_list
         rows_pumped = 0
 
-        if len(state) > 20000:
+        if len(state) > 60000:
             bulk_accumulator = [
                 map_row_to_esop(first_result, state, processed, match_field, container_field, es_config)
             ]
