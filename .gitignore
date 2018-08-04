@@ -97,3 +97,4 @@ node_modules/
 # Dragnet transient data
 data/export/
 data/import/
+.DS_Store

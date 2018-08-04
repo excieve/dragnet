@@ -8,6 +8,14 @@ from string import capwords
 from parsel import Selector
 from dateutil.parser import parse as dt_parse
 
+from names_translator.name_utils import (
+    generate_all_names,
+    autocomplete_suggestions,
+    concat_name,
+    title,
+    parse_fullname
+)
+
 
 logger = logging.getLogger('dragnet.nacp_parser')
 
@@ -21,7 +29,7 @@ class BadHTMLData(Exception):
 
 
 def parse_guid_from_fname(json_fname):
-    m = re.search("([0-9\-a-z]{36})", os.path.basename(json_fname))
+    m = re.search(r"([0-9\-a-z]{36})", os.path.basename(json_fname))
 
     if m:
         return m.group(1), json_fname
@@ -30,17 +38,11 @@ def parse_guid_from_fname(json_fname):
 
 
 def is_cyr(name):
-    return re.search("[а-яіїєґ]+", name.lower(), re.UNICODE) is not None
+    return re.search(r"[а-яіїєґ]+", name.lower(), re.UNICODE) is not None
 
 
 def is_ukr(name):
-    return re.search("['іїєґ]+", name.lower(), re.UNICODE) is not None
-
-
-def title(s):
-    chunks = s.split()
-    chunks = map(lambda x: capwords(x, u"-"), chunks)
-    return u" ".join(chunks)
+    return re.search(r"['іїєґ]+", name.lower(), re.UNICODE) is not None
 
 
 def replace_apostrophes(s):
@@ -218,6 +220,52 @@ class NacpDeclarationParser(object):
         jmespath.compile("declaration.url"),
     ]
 
+    names_paths = [
+        jmespath.compile("step_1.[lastname,firstname,middlename]"),
+        jmespath.compile("step_1.[previous_lastname,previous_firstname,previous_middlename]"),
+
+        jmespath.compile("step_2.*.[lastname,firstname,middlename]"),
+        jmespath.compile("step_2.*.[previous_lastname, previous_firstname,previous_middlename]"),
+        jmespath.compile("step_2.*.[source_ua_lastname,source_ua_firstname,source_ua_middlename]"),
+
+        jmespath.compile("step_3.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+        jmespath.compile("step_3.*.rights[].*.ukr_fullname[]"),
+
+
+        jmespath.compile("step_4.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+        jmespath.compile("step_4.*.[addition_lastname,addition_firstname,addition_middlename]"),
+
+        jmespath.compile("step_6.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+        jmespath.compile("step_6.*.rights[].*.[ukr_lastname,ukr_firstname,ukr_middlename][]"),
+        jmespath.compile("step_6.*.rights[].*.[ukr_fullname][]"),
+
+        
+        jmespath.compile("step_7.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+
+        jmespath.compile("step_8.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+
+
+        jmespath.compile("step_10.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+
+        jmespath.compile("step_11.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+        jmespath.compile("step_11.*.rights[].*.ukr_fullname[]"),
+        jmespath.compile("step_11.*.rights[].*.[source_ua_lastname,source_ua_firstname,source_ua_middlename][]"),
+        jmespath.compile("step_11.*.source_ukr_fullname"),
+
+        
+        jmespath.compile("step_12.*.[debtor_ua_lastname,debtor_ua_firstname,debtor_ua_middlename]"),
+        jmespath.compile("step_12.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
+
+        jmespath.compile("step_13.*.[emitent_ua_lastname,emitent_ua_firstname,emitent_ua_middlename]"),
+        jmespath.compile("step_13.*.emitent_ukr_fullname"),
+        
+
+        jmespath.compile("step_13.*.guarantor[].*.[guarantor_ua_lastname,guarantor_ua_firstname,guarantor_ua_middlename][]"),
+        jmespath.compile("step_13.*.guarantor_realty[].*.[realty_rights_ua_lastname,realty_rights_ua_firstname,realty_rights_ua_middlename][]"),
+
+        jmespath.compile("step_15.*.[emitent_ua_lastname,emitent_ua_firstname,emitent_ua_middlename]"),
+    ]
+
     corrected = set()
 
     @staticmethod
@@ -344,6 +392,50 @@ class NacpDeclarationParser(object):
             }
         }
 
+        # Let's extract all names for the autocomplete and search
+        extracted_names = []
+        persons = set()
+        names_autocomplete = set()
+
+        # Extracting all persons mentioned in different sections of that declaration
+        for pth in cls.names_paths:
+            res = pth.search(data)
+            if res:
+                if isinstance(res[0], str):
+                    if len(res) == 1 and res[0]:
+                        l, f, p, _ = parse_fullname(res[0])
+                        res = [l, f, p]
+                    res = [res]
+
+                if res[0] is None:
+                    res = [res]
+
+                res = [r for r in res if all(map(bool, r))]
+                for name in res:
+                    # assuming fully parsed name here
+                    if len(name) == 3:
+                        extracted_names.append(name)
+                    else:
+                        found_as_name = False
+                        for chunk in name:
+                            l, f, p, _ = parse_fullname(chunk)
+                            if f:
+                                found_as_name = True
+                                extracted_names.append([l, f, p])
+
+                        if not found_as_name and len(name) == 2:
+                            extracted_names.append([name[0], name[1], ""])
+
+        for name in extracted_names:
+            persons |= generate_all_names(
+                name[0], name[1], name[2]
+            )
+
+            names_autocomplete |= autocomplete_suggestions(
+                concat_name(*name)
+            )
+
+
         if "step_2" in data:
             family = data["step_2"]
 
@@ -442,6 +534,9 @@ class NacpDeclarationParser(object):
             resp["general"]["post"]["region"] = resp["general"]["post"]["actual_region"]
 
         resp["index_card"] = concat_fields(resp, cls.INDEX_CARD_FIELDS)
+
+        resp["persons"] = list(filter(None, persons))
+        resp["names_autocomplete"] = list(filter(None, names_autocomplete))
 
         return resp
 
