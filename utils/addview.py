@@ -90,17 +90,14 @@ def execute_view(couch, view):
         for t in tasks:
             diff_t = float(t['updated_on'] - t['started_on'])
             if diff_t > 0:
-                if 'changes_done' in t:
-                    changes_per_sec.append(float(t['changes_done']) / diff_t)
-                else:
-                    logger.warning("Unexpected tasks results: {}".format(json.dumps(t, indent=4)))
+                changes_per_sec.append(float(t.get('changes_done', 0)) / diff_t)
         all_changes_per_sec.append(sum(changes_per_sec))
         all_changes_per_sec_one_task.append(changes_per_sec[0])
         logger.info('c/s = {:.2f} ({} tasks), {:.2f} (one task); changes = {}'
                     .format(
                         sum(changes_per_sec), len(tasks),
                         changes_per_sec[0],
-                        sum([t['changes_done'] for t in tasks])
+                        sum([t.get('changes_done', 0) for t in tasks])
                     ))
         time.sleep(1)
 
