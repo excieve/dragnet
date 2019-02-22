@@ -41,7 +41,7 @@ def export_view(filename, state_filename, design_doc_name, view_name, db_config,
                 view_writer.writerow(mappings)
 
             # If state is absent or big enough, let's just export everything
-            if state is None or len(state) > 20000:
+            if state is None or len(state) > 60000:
                 # Instead of using offsets and limits to get batches we're utilising B-Tree properly:
                 # http://docs.couchdb.org/en/2.0.0/couchapp/views/pagination.html#paging-alternate-method
                 # This scales very well as the DB never needs to scan over all the previous nodes.

@@ -189,6 +189,78 @@
         "GHS": 6.202856283,
     }
 
+    const exchange_rates_2018 = {
+        "AMD": 0.058164,
+        "AUD": 19.55852,
+        "AZN": 16.28721,
+        "BGN": 16.21543,
+        "BRL": 7.136151,
+        "BYR": 12.81864,
+        "CAD": 20.32697,
+        "CHF": 28.2481,
+        "CLP": 0.039925,
+        "CNY": 4.025761,
+        "CZK": 1.230279,
+        "DKK": 4.247069,
+        "EGP": 1.55079,
+        "EUR": 31.71414,
+        "GBP": 35.13137,
+        "GEL": 10.55293,
+        "HKD": 3.534948,
+        "HRK": 4.280199,
+        "HUF": 0.098611,
+        "ILS": 7.353491,
+        "INR": 0.395312,
+        "IQD": 0.023788,
+        "IRR": 0.000659,
+        "ISK": 0.237994,
+        "JPY": 0.250903,
+        "KGS": 0.404048,
+        "KRW": 0.024789,
+        "KWD": 91.38041,
+        "KZT": 0.07278,
+        "LBP": 0.018744,
+        "LYD": 20.27643,
+        "MDL": 1.615164,
+        "MNT": 0.010579,
+        "MXN": 1.406055,
+        "NOK": 3.179745,
+        "NZD": 18.58976,
+        "PEN": 8.216102,
+        "PKR": 0.210775,
+        "PLN": 7.370581,
+        "RON": 6.80123,
+        "RUB": 0.39827,
+        "SAR": 7.383537,
+        "SEK": 3.085843,
+        "SGD": 20.27499,
+        "SYP": 0.053766,
+        "TJS": 2.996397,
+        "TMT": 8.063647,
+        "TRY": 5.250685,
+        "TWD": 0.917903,
+        "UAH": 1,
+        "USD": 27.68826,
+        "UZS": 0.003401,
+        "VND": 0.00121,
+        "XDR": 38.5086,
+        "XOF": 0.04834,
+        "QAR": 7.606666,
+        "AED": 7.684891,
+        "UYU": 0.855104,
+        "GHS": 5.855102,
+        "BDT": 0.337391,
+        "BYN": 12.81983,
+        "DZD": 0.239079,
+        "IDR": 0.001906,
+        "MAD": 2.976112,
+        "MYR": 6.744559,
+        "RSD": 0.272578,
+        "THB": 0.858366,
+        "TND": 9.658384,
+        "ZAR": 1.927841
+    }
+
     let declarant_assets = 0.0,
         family_assets = 0.0,
         total_assets = 0.0,
@@ -211,11 +283,13 @@
 
         let val = assets_doc.sizeAssets;
         if (assets_doc.assetsCurrency && assets_doc.assetsCurrency != 'UAH') {
-            let exchange_table = exchange_rates_2017;
+            let exchange_table = exchange_rates_2018;
             if (nacp_doc.step_0.declarationYear1 == '2015')
                 exchange_table = exchange_rates_2015;
             if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
+            if (nacp_doc.step_0.declarationYear1 == '2017')
+                exchange_table = exchange_rates_2017;
             if (!(assets_doc.assetsCurrency in exchange_table)) {
                 log(`${assets_doc.assetsCurrency} currency code is not known`);
                 continue;
