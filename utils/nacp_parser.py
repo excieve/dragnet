@@ -225,7 +225,7 @@ class NacpDeclarationParser(object):
         jmespath.compile("step_1.[previous_lastname,previous_firstname,previous_middlename]"),
 
         jmespath.compile("step_2.*.[lastname,firstname,middlename]"),
-        jmespath.compile("step_2.*.[previous_lastname, previous_firstname,previous_middlename]"),
+        jmespath.compile("step_2.*.[previous_lastname,previous_firstname,previous_middlename]"),
         jmespath.compile("step_2.*.[source_ua_lastname,source_ua_firstname,source_ua_middlename]"),
 
         jmespath.compile("step_3.*.rights[].*.[ua_lastname,ua_firstname,ua_middlename][]"),
@@ -267,13 +267,14 @@ class NacpDeclarationParser(object):
     ]
 
     corrected = set()
+    translator = None
 
     @staticmethod
     def parse_date(s):
         return dt_parse(s, dayfirst=True)
 
-    @staticmethod
-    def extract_textual_data(decl):
+    @classmethod
+    def extract_textual_data(cls, decl):
         res = decl.css(
             "*:not(td)>span.block::text, *:not(td)>span.border::text, td *::text").extract()
 
@@ -288,7 +289,22 @@ class NacpDeclarationParser(object):
         # Very special case
         res = filter(lambda x: not x.startswith("Загальна площа (м"), res)
 
-        return res
+        if cls.translator is not None:
+            res_en = [cls.translator.translate(x)["translation"] for x in res]
+            print(res_en)
+
+        return list(res) + res_en
+
+    @staticmethod
+    def extract_obj_ids(decl_data):
+        objs = set()
+
+        for v in decl_data.values():
+            if isinstance(v, dict):
+                for k in v.keys():
+                    if k.isdigit():
+                        objs.add(k)
+        return objs
 
     @classmethod
     def decode_region(cls, region_html):
@@ -342,6 +358,8 @@ class NacpDeclarationParser(object):
 
         resp["doc_uuid"] = "nacp_{}".format(id_)
         resp["ft_src"] = "\n".join(cls.extract_textual_data(html))
+        resp["obj_ids"] = cls.extract_obj_ids(data)
+
         resp["nacp_orig"] = data
         resp["declaration"]["url"] = "https://public.nazk.gov.ua/declaration/{}".format(id_)
         resp["declaration"]["source"] = "NACP"

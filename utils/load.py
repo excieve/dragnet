@@ -1,3 +1,5 @@
+import sys
+import os
 import logging
 import argparse
 import glob2
@@ -13,9 +15,14 @@ from uuid import UUID
 
 from cloudant import couchdb
 
-
 from nacp_parser import NacpDeclarationParser, parse_guid_from_fname
 from nacp_normaliser import preprocess_nacp_doc
+
+sys.path = [os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../declarations_site")] + sys.path
+os.environ["DJANGO_SETTINGS_MODULE"] = "declarations_site.settings"
+import django
+django.setup()
+from catalog.translator import Translator
 
 
 logger = log_to_stderr()
@@ -90,6 +97,10 @@ def import_all(docs_dir, corrected_file, db_config, concurrency, chunks_per_proc
             corrected.add(l["uuid"])
 
     NacpDeclarationParser.corrected = corrected
+
+    translator = Translator()
+    translator.fetch_full_dict_from_db()
+    NacpDeclarationParser.translator = translator
 
     with Pool(concurrency) as pool:
         # Lazily consume batches of `chunks_per_process` for every process in the pool of `concurrency`
