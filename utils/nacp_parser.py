@@ -291,7 +291,6 @@ class NacpDeclarationParser(object):
 
         if cls.translator is not None:
             res_en = [cls.translator.translate(x)["translation"] for x in res]
-            print(res_en)
 
         return list(res) + res_en
 
@@ -304,7 +303,7 @@ class NacpDeclarationParser(object):
                 for k in v.keys():
                     if k.isdigit():
                         objs.add(k)
-        return objs
+        return list(objs)
 
     @classmethod
     def decode_region(cls, region_html):
