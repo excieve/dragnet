@@ -287,12 +287,12 @@ class NacpDeclarationParser(object):
         res = filter(lambda x: not x.endswith("]"), res)
 
         # Very special case
-        res = filter(lambda x: not x.startswith("Загальна площа (м"), res)
+        res = list(filter(lambda x: not x.startswith("Загальна площа (м"), res))
 
         if cls.translator is not None:
             res_en = [cls.translator.translate(x)["translation"] for x in res]
 
-        return list(res) + res_en
+        return res + res_en
 
     @staticmethod
     def extract_obj_ids(decl_data):
