@@ -116,7 +116,7 @@ class NacpDeclarationParser(object):
         (r'^севастополь$', 'Кримська Автономна Республіка'),
         (r'^с[и|і]мферополь / укра[ї|и]на$', 'Кримська Автономна Республіка'),
         (r'^с[и|і]мферополь$', 'Кримська Автономна Республіка'),
-        (r'^в[і|и]нниць?к(?:а|ая|ої|ой) обл', 'Вінницька область'),
+        (r'в[і|и]нниць?к(?:а|ая|ої|ой) обл', 'Вінницька область'),
         (r'^в[і|и]нниц[а|я] / укра[ї|и]на$', 'Вінницька область'),
         (r'^в[і|и]нниц[а|я]$', 'Вінницька область'),
         (r'вол[и|ы]нсь?к(?:а|ої|ая|ой) обл', 'Волинська область'),
@@ -288,6 +288,7 @@ class NacpDeclarationParser(object):
 
         # Very special case
         res = list(filter(lambda x: not x.startswith("Загальна площа (м"), res))
+        res_en = []
 
         if cls.translator is not None:
             res_en = [cls.translator.translate(x)["translation"] for x in res]
@@ -534,15 +535,31 @@ class NacpDeclarationParser(object):
             region_html = html.css(
                 "fieldset:contains('Зареєстроване місце проживання') .person-info:contains('Місто')::text"
             ).extract()
-            if len(region_html) > 1:
+
+            if len(region_html) > 1 and region_html[1].strip():
                 resp["general"]["post"]["region"] = cls.decode_region(region_html[1])
+            else:
+                region_html = html.css(
+                    "fieldset:contains('Зареєстроване місце проживання') .person-info:contains('Місто') span::text"
+                ).extract()
+
+                if region_html and region_html[0]:
+                    resp["general"]["post"]["region"] = cls.decode_region(region_html[0])
 
         if not resp["general"]["post"]["actual_region"]:
             region_html = html.css(
                 "fieldset:contains('Місце фактичного проживання') .person-info:contains('Місто')::text"
             ).extract()
-            if len(region_html) > 1:
+
+            if len(region_html) > 1 and region_html[1].strip():
                 resp["general"]["post"]["actual_region"] = cls.decode_region(region_html[1])
+            else:
+                region_html = html.css(
+                    "fieldset:contains('Місце фактичного проживання') .person-info:contains('Місто') span::text"
+                ).extract()
+
+                if region_html and region_html[0]:
+                    resp["general"]["post"]["actual_region"] = cls.decode_region(region_html[0])
 
         # if set only one region use it value for second one
         if not resp["general"]["post"]["actual_region"] and resp["general"]["post"]["region"]:
