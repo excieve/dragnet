@@ -238,6 +238,9 @@
         corprights_has_foreign = false,
         has_foreign_bank_acc = false,
         hidden_in_family = false;
+        has_aircraft_flag = false;
+        has_major_real_estate = false;
+        has_foreign_real_estate = false;
     // Helper values
     let total_income = 0.0,
         total_presents = 0.0,
@@ -285,22 +288,32 @@
     if (nacp_doc.step_3) {
         for (let key in nacp_doc.step_3) {
             const estate_doc = nacp_doc.step_3[key];
+            let has_real_estate = false;
+
             if (typeof(estate_doc) != 'object')
                 continue;
             if (!isOwned(estate_doc))
                 continue;
 
             switch (estate_doc.dnt_objectType_encoded) {
+                case 'apt':
+                case 'office':
+                    has_real_estate = true
+                    break;
                 case 'garage':
                     has_garage = true;
                     break;
                 case 'house':
                 case 'dacha':
                     has_house = true;
+                    has_real_estate = true;
                     break;
                 case 'land':
                     has_land = true;
                     break;
+                case 'other':
+                    if (estate_doc.otherObjectType.toLowerCase().indexOf("будинок") != -1)
+                        has_real_estate = true;
             }
 
             const owning_date = estate_doc.owningDate.split('.');
@@ -312,6 +325,12 @@
 
             if (String(estate_doc.person) in (nacp_doc.step_2 || {}) && (estate_doc.dnt_costDate_hidden || estate_doc.dnt_costAssessment_hidden))
                 hidden_in_family = true;
+
+            if (has_real_estate && estate_doc.totalArea > 300.)
+                has_major_real_estate = true
+
+            if (has_real_estate && String(estate_doc.country) != "1")
+                has_foreign_real_estate = true
         }
     }
     if (nacp_doc.step_5) {
@@ -339,6 +358,9 @@
 
             if (String(vehicle_doc.person) in (nacp_doc.step_2 || {}) && (vehicle_doc.dnt_costDate_hidden || vehicle_doc.dnt_graduationYear_hidden))
                 hidden_in_family = true;
+
+            if (vehicle_doc.dnt_objectType_encoded == "air_transport")
+                has_aircraft_flag = true;
 
             let full_name = '';
             if (vehicle_doc.brand)
@@ -483,5 +505,6 @@
                    has_luxury_cars_v2, vehicle_purch_no_cost, estate_purch_no_cost, estate_has_hidden_cost,
                    corprights_has_foreign, has_foreign_bank_acc, income_has_prizes, loan_shark, jar_of_pocket_cash,
                    income_presents_to_total_50, hidden_in_family,
-                   total_expenses, total_liabilities, total_cash, total_presents]);
+                   total_expenses, total_liabilities, total_cash, total_presents, has_aircraft_flag, 
+                   has_major_real_estate, has_foreign_real_estate]);
 }

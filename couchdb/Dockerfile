@@ -1,8 +1,8 @@
-FROM apache/couchdb:2.1.1
+FROM apache/couchdb:2
 # Clean original build artefacts and compile couch-chakra
 RUN rm -rf /etc/apt/sources.list.d/* &&\
-    echo 'deb http://ftp.debian.org/debian jessie-backports main' >> /etc/apt/sources.list
-RUN apt-get update -y -qq && apt-get install -y -t jessie-backports clang-3.8 cmake libunwind8 libunwind8-dev unzip libicu-dev
+    echo 'deb http://ftp.debian.org/debian buster-backports main' >> /etc/apt/sources.list
+RUN apt-get update -y -qq && apt-get install -y -t buster-backports clang-3.8 cmake libunwind8 libunwind8-dev unzip libicu-dev
 WORKDIR /usr/src
 RUN curl -fSL https://github.com/Microsoft/ChakraCore/archive/cb7817bda7e4b265e7a7364641123e20204facfd.zip -o ChakraCore.zip &&\
     unzip ChakraCore.zip &&\
@@ -18,4 +18,5 @@ RUN make CHAKRA_INCLUDE_DIR="/usr/src/ChakraCore-cb7817bda7e4b265e7a7364641123e2
     cat /opt/couchdb/share/server/main.js | sed 's/for each (fun in State.funs) {/State.funs.forEach(function(fun) {/g' | sed 's/print(JSON.stringify(buf));/); print(JSON.stringify(buf));/g' > /opt/couch-chakra/main.js
 WORKDIR /opt/couchdb
 RUN rm -rf /usr/src/*
+ENV COUCHDB_QUERY_SERVER_CHAKRA "/opt/couch-chakra/couch-chakra /opt/couch-chakra/main.js"
 COPY couch_chakra.ini /opt/couchdb/etc/local.d/

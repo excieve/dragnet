@@ -1,3 +1,3 @@
 COUCHDBUSER=admin
 COUCHDBPASSWORD=admin
-
+COUCHDB_QUERY_SERVER_CHAKRA="/opt/couch-chakra/couch-chakra /opt/couch-chakra/main.js"

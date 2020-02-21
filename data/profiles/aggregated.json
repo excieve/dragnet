@@ -79,7 +79,8 @@
                     "lux_cars_flag", "lux_cars_flag_v2", "vehicle_purch_no_cost_flag", "estate_purch_no_cost_flag",
                     "estate_has_hidden_cost", "corprights_abroad_flag", "bank_accounts_abroad_flag", "income_prize_fact",
                     "assets_lend_3rd_parties", "cash_flag_500k", "income_presents_to_total_flag_50", "family_member_did_not_provide_information_flag",
-                    "expenses.total", "liabilities.total", "assets.cash.total", "incomes.presents.all"
+                    "expenses.total", "liabilities.total", "assets.cash.total", "incomes.presents.all", "has_aircraft_flag",
+                    "has_major_real_estate", "has_foreign_real_estate"
                 ]
             }
         ]
