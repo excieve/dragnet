@@ -341,6 +341,7 @@ class NacpDeclarationParser(object):
 
         id_ = data.get("id")
         created_date = data.get("created_date")
+        user_declarant_id = data.get("user_declarant_id")
 
         raw_html_lowered = raw_html.lower()
         for chunk in cls.dangerous_chunks:
@@ -367,6 +368,7 @@ class NacpDeclarationParser(object):
 
         resp["intro"]["corrected"] = id_ in cls.corrected
         resp["intro"]["date"] = cls.parse_date(created_date).isoformat()
+        resp["intro"]["user_declarant_id"] = user_declarant_id
 
         if "declarationType" not in data["step_0"] or "changesYear" in data["step_0"]:
             resp["intro"]["doc_type"] = "Форма змін"

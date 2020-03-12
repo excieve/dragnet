@@ -4,6 +4,416 @@
     if (!nacp_doc.step_0 || nacp_doc.step_0.changesYear || !nacp_doc.step_0.declarationType)
         return;
 
+    const common_bank_names = [
+        "твбв",
+        "ощадбанк",
+        "приватбанк",
+        "аваль",
+        "райффайзен",
+        "абанк",
+        "агріколь",
+        "укрсиббанк",
+        "альфабанк",
+        "пумб",
+        "укргазбанк",
+        "мегабанк",
+        "акордбанк",
+        "сбербанк",
+        "таскомбанк",
+        "кредобанк",
+        "індустріалбанк",
+        "укрексімбанк",
+        "радабанк",
+        "укркомунбанк",
+        "укрбудінвестбанк",
+        "правексбанк",
+        "правекс",
+        "прокредит",
+        "метабанк",
+        "комінвестбанк",
+        "форвард",
+        "дельта-банк",
+        "дельтабанк",
+        "дельта банк",
+    ];
+
+    const common_bank_codes = [
+        "19358916",
+        "22808607",
+        "21420657",
+        "23321095",
+        "09338500",
+        "19369239",
+        "25292831",
+        "20021814",
+        "00039025",
+        "26547581",
+        "09336500",
+        "20026838",
+        "09304612",
+        "09805171",
+        "14361032",
+        "13550848",
+        "21665382",
+        "14263173",
+        "19361746",
+        "09620081",
+        "09303328",
+        "33695095",
+        "35371070",
+        "38781707",
+        "19364130",
+        "20935649",
+        "33294890",
+        "34693790",
+        "19358767",
+        "19361982",
+        "24905013",
+        "20953647",
+        "35574578",
+        "20077200",
+        "33972230",
+        "20966466",
+        "36002395",
+        "36061927",
+        "35917889",
+        "21595828",
+        "09311380",
+        "19357443",
+        "38322199",
+        "09351600",
+        "09807862",
+        "09323408",
+        "20569558",
+        "19364584",
+        "38514375",
+        "19233095",
+        "21329000",
+        "20050951",
+        "14282829",
+        "21574573",
+        "20679755",
+        "21955111",
+        "19361427",
+        "37716841",
+        "38619024",
+        "02068095",
+        "36520434",
+        "36335426",
+        "20929956",
+        "19020301",
+        "20510134",
+        "35863708",
+        "09809192",
+        "16328435",
+        "26253000",
+        "26410155",
+        "20496061",
+        "19358282",
+        "23494105",
+        "22932856",
+        "14360920",
+        "21554560",
+        "09333401",
+        "26410346",
+        "21568696",
+        "21322127",
+        "20935846",
+        "26549700",
+        "22868414",
+        "21673424",
+        "14359845",
+        "21570492",
+        "09305480",
+        "21666051",
+        "09356307",
+        "14349442",
+        "26333064",
+        "20025456",
+        "37987811",
+        "13857564",
+        "19357489",
+        "20023463",
+        "24425738",
+        "38061253",
+        "22869483",
+        "01904694",
+        "38870739",
+        "34353904",
+        "20015529",
+        "14305909",
+        "20846070",
+        "19159542",
+        "36470620",
+        "20685262",
+        "13881479",
+        "14351016",
+        "20305925",
+        "24262992",
+        "09328601",
+        "35345213",
+        "20280450",
+        "19357325",
+        "20041917",
+        "26475516",
+        "09806443",
+        "13486837",
+        "19358454",
+        "26364113",
+        "33308489",
+        "23024763",
+        "21685485",
+        "19019775",
+        "24363820",
+        "09315357",
+        "33881201",
+        "37515069",
+        "23307646",
+        "38770082",
+        "37176171",
+        "19364259",
+        "09801546",
+        "19017842",
+        "21536532",
+        "20058668",
+        "14360721",
+        "14359319",
+        "21734522",
+        "34186061",
+        "19359784",
+        "21684161",
+        "20971504",
+        "34819265",
+        "09804355",
+        "09334702",
+        "09804119",
+        "23362711",
+        "20748213",
+        "19358201",
+        "34576883",
+        "21593719",
+        "13641864",
+        "00039002",
+        "19357762",
+        "14070197",
+        "19358796",
+        "19356840",
+        "23876031",
+        "19358632",
+        "09807750",
+        "09806354",
+        "09325703",
+        "19388768",
+        "09353504",
+        "19358419",
+        "19361386",
+        "20053145",
+        "34575675",
+        "36482677",
+        "21684818",
+        "09807595",
+        "19454139",
+        "14366762",
+        "33299878",
+        "20042809",
+        "34514392",
+        "39037656",
+        "38377143",
+        "00039019",
+        "2073574",
+        "20057663",
+        "09806437",
+        "26444836",
+        "23478833",
+        "09322299",
+        "24191588",
+        "21063524",
+        "14358604",
+        "20034231",
+        "05839888",
+        "23494714",
+        "14352406",
+        "20401758",
+        "25571287",
+        "21296105",
+        "00032129",
+        "19358721",
+        "14362014",
+        "09331508",
+        "21650966",
+        "37731532",
+        "21564391",
+        "2070535",
+        "21658672",
+        "19024948",
+        "26379729",
+        "09322277",
+        "20365318",
+        "26549574",
+        "26519933",
+        "21986488",
+        "21094713",
+        "16397258",
+        "39544699",
+        "00032112",
+        "09805053",
+        "39849797",
+        "35590956",
+        "23928584",
+        "26287625",
+        "14360570",
+        "21110655",
+        "19361574",
+        "22621582",
+        "16293211",
+        "13986250",
+        "09302607",
+        "09805194",
+        "20021524",
+        "38591533",
+        "09306278",
+        "22607369",
+        "25719206",
+        "26520688",
+        "34817907",
+        "33305163",
+        "14371869",
+        "19357516",
+        "19357590",
+        "34540768",
+        "14360506",
+        "20017340",
+        "14350784",
+        "02767059",
+        "14253207",
+        "23563450",
+        "14360386",
+        "24214088",
+        "02349410",
+        "14291780",
+        "24896705",
+        "19355562",
+        "20717958",
+        "21133352",
+        "19362160",
+        "20023569",
+        "36406512",
+        "35960913",
+        "19359904",
+        "20028816",
+        "02766367",
+        "37119553",
+        "09807856",
+        "26253023",
+        "26120084",
+        "09337356",
+        "19193869",
+        "14360080",
+        "36964568",
+        "19358784",
+        "35289950",
+        "09312190",
+        "13566973",
+        "21101701",
+        "38690683",
+        "19338316",
+        "26051650",
+        "26520464",
+        "21677333",
+        "26196437",
+        "19356610",
+        "21580639",
+        "14361575",
+        "09801641",
+        "20042839",
+        "20949114",
+        "34001693",
+        "37572263",
+        "19361350",
+        "34540113",
+        "02760363",
+        "21685166",
+        "26296587",
+        "22906155",
+        "35591059",
+        "20046323",
+        "35894495",
+        "01400564",
+        "20015050",
+        "35810511",
+        "25959784",
+        "19356515",
+        "36301800",
+        "21753123",
+        "20026740",
+        "26254732",
+        "23697280",
+        "34047020",
+        "23926846",
+        "09326464",
+        "22199930",
+        "20015535",
+        "19390819",
+        "35264721",
+        "20630973",
+        "26237202",
+        "19362154",
+        "9338500",
+        "39025",
+        "9336500",
+        "9304612",
+        "9805171",
+        "9620081",
+        "9303328",
+        "9311380",
+        "9351600",
+        "9807862",
+        "9323408",
+        "2068095",
+        "9809192",
+        "9333401",
+        "9305480",
+        "9356307",
+        "1904694",
+        "9328601",
+        "9806443",
+        "9315357",
+        "9801546",
+        "9804355",
+        "9334702",
+        "9804119",
+        "39002",
+        "9807750",
+        "9806354",
+        "9325703",
+        "9353504",
+        "9807595",
+        "39019",
+        "02073574",
+        "9806437",
+        "9322299",
+        "5839888",
+        "32129",
+        "9331508",
+        "02070535",
+        "9322277",
+        "32112",
+        "9805053",
+        "9302607",
+        "9805194",
+        "9306278",
+        "2767059",
+        "2349410",
+        "2766367",
+        "9807856",
+        "9337356",
+        "9312190",
+        "9801641",
+        "2760363",
+        "1400564",
+        "9326464",
+    ];
+
     // TODO: perhaps move this to a separate stored function with rates by year
     const exchange_rates_2015 = {
         "UAH": 1,
@@ -65,7 +475,7 @@
         "QAR": 6.589863138,
         "UYU": 0.8023422978,
         "GHS": 6.291054834
-    }
+    };
     const exchange_rates_2016 = {
         "UAH": 1,
         "AED": 7.403708,
@@ -127,7 +537,7 @@
         "QAR": 7.468241058,
         "UYU": 0.9285678007,
         "GHS": 6.359669778
-    }
+    };
     const exchange_rates_2017 = {
         "UAH": 1,
         "AUD": 21.849592,
@@ -189,7 +599,151 @@
         "QAR": 7.718486325,
         "UYU": 0.9742706225,
         "GHS": 6.202856283,
+    };
+
+    const exchange_rates_2018 = {
+        "AMD": 0.058164,
+        "AUD": 19.55852,
+        "AZN": 16.28721,
+        "BGN": 16.21543,
+        "BRL": 7.136151,
+        "BYR": 12.81864,
+        "CAD": 20.32697,
+        "CHF": 28.2481,
+        "CLP": 0.039925,
+        "CNY": 4.025761,
+        "CZK": 1.230279,
+        "DKK": 4.247069,
+        "EGP": 1.55079,
+        "EUR": 31.71414,
+        "GBP": 35.13137,
+        "GEL": 10.55293,
+        "HKD": 3.534948,
+        "HRK": 4.280199,
+        "HUF": 0.098611,
+        "ILS": 7.353491,
+        "INR": 0.395312,
+        "IQD": 0.023788,
+        "IRR": 0.000659,
+        "ISK": 0.237994,
+        "JPY": 0.250903,
+        "KGS": 0.404048,
+        "KRW": 0.024789,
+        "KWD": 91.38041,
+        "KZT": 0.07278,
+        "LBP": 0.018744,
+        "LYD": 20.27643,
+        "MDL": 1.615164,
+        "MNT": 0.010579,
+        "MXN": 1.406055,
+        "NOK": 3.179745,
+        "NZD": 18.58976,
+        "PEN": 8.216102,
+        "PKR": 0.210775,
+        "PLN": 7.370581,
+        "RON": 6.80123,
+        "RUB": 0.39827,
+        "SAR": 7.383537,
+        "SEK": 3.085843,
+        "SGD": 20.27499,
+        "SYP": 0.053766,
+        "TJS": 2.996397,
+        "TMT": 8.063647,
+        "TRY": 5.250685,
+        "TWD": 0.917903,
+        "UAH": 1,
+        "USD": 27.68826,
+        "UZS": 0.003401,
+        "VND": 0.00121,
+        "XDR": 38.5086,
+        "XOF": 0.04834,
+        "QAR": 7.606666,
+        "AED": 7.684891,
+        "UYU": 0.855104,
+        "GHS": 5.855102,
+        "BDT": 0.337391,
+        "BYN": 12.81983,
+        "DZD": 0.239079,
+        "IDR": 0.001906,
+        "MAD": 2.976112,
+        "MYR": 6.744559,
+        "RSD": 0.272578,
+        "THB": 0.858366,
+        "TND": 9.658384,
+        "ZAR": 1.927841,
+    };
+    const exchange_rates_2019 = {
+        "AMD": 0.049398,
+        "AUD": 16.5223,
+        "AZN": 13.9265,
+        "BGN": 13.5087,
+        "BRL": 5.8477,
+        "BYR": 11.2256872,
+        "CAD": 18.1011,
+        "CHF": 24.2711,
+        "CLP": 0.031832012,
+        "CNY": 3.3858,
+        "CZK": 1.0357,
+        "DKK": 3.5382,
+        "EGP": 1.4769,
+        "EUR": 26.422,
+        "GBP": 31.0206,
+        "GEL": 8.2747,
+        "HKD": 3.0419,
+        "HRK": 3.5481,
+        "HUF": 0.079881,
+        "ILS": 6.843,
+        "INR": 0.3319,
+        "IQD": 0.019904,
+        "IRR": 0.00056396,
+        "ISK": 0.195495213,
+        "JPY": 0.21626,
+        "KGS": 0.33985,
+        "KRW": 0.020399,
+        "KWD": 78.17227723,
+        "KZT": 0.062177,
+        "LBP": 0.015712,
+        "LYD": 16.8777,
+        "MDL": 1.3705,
+        "MNT": 0.0086762,
+        "MXN": 1.2521,
+        "NOK": 2.6807,
+        "NZD": 15.878,
+        "PEN": 7.155951662,
+        "PKR": 0.152942468,
+        "PLN": 6.1943,
+        "RON": 5.5255,
+        "RUB": 0.3816,
+        "SAR": 6.3116,
+        "SEK": 2.533,
+        "SGD": 17.5168,
+        "SYP": 0.054451034,
+        "TJS": 2.443,
+        "TMT": 6.7675,
+        "TRY": 3.9757,
+        "TWD": 0.78645,
+        "UAH": 1,
+        "USD": 23.6862,
+        "UZS": 0.002489,
+        "VND": 0.0010221,
+        "XDR": 32.6996,
+        "XOF": 0.040529414,
+        "QAR": 6.507197802,
+        "AED": 6.4489,
+        "UYU": 0.62861465,
+        "GHS": 4.1193,
+        "BDT": 0.27899,
+        "BYN": 11.2577,
+        "DZD": 0.19841,
+        "IDR": 0.0016976,
+        "MAD": 2.4677,
+        "MYR": 5.7368,
+        "RSD": 0.22477,
+        "THB": 0.78556,
+        "TND": 8.3827,
+        "ZAR": 1.687,
     }
+
     const luxury_car_names = [
         'acura', 'alfa romeo 4c', 'alfa romeo 4c spider', 'aston martin', 'audi a8', 'audi r8', 'audi tt', 'bentley',
         'bmw 6', 'bmw 7', 'bmw 8', 'cadillac', 'ferrari', 'fiat 124 spider', 'ford mustang', 'genesis g90',
@@ -217,6 +771,7 @@
           total_cash_threshold = 5000000,
           total_cash_threshold_500k = 500000,
           lent_assets_threshold = 300000;
+          huge_prize_threshold = 10000;
 
     // Flags
     let assets_to_income = false,
@@ -241,6 +796,11 @@
         has_aircraft_flag = false;
         has_major_real_estate = false;
         has_foreign_real_estate = false;
+        family_member_did_not_provide_information = false;
+        has_huge_prize = false;
+        has_bo_abroad = false;
+        has_non_bank_liabilities = false;
+
     // Helper values
     let total_income = 0.0,
         total_presents = 0.0,
@@ -273,11 +833,15 @@
     let convertCurrency = (amount, currency) => {
         let val = amount;
         if (currency && currency != 'UAH') {
-            let exchange_table = exchange_rates_2017;
+            let exchange_table = exchange_rates_2019;
             if (nacp_doc.step_0.declarationYear1 == '2015')
                 exchange_table = exchange_rates_2015;
             if (nacp_doc.step_0.declarationYear1 == '2016')
                 exchange_table = exchange_rates_2016;
+            if (nacp_doc.step_0.declarationYear1 == '2017')
+                exchange_table = exchange_rates_2017;
+            if (nacp_doc.step_0.declarationYear1 == '2018')
+                exchange_table = exchange_rates_2018;
             if (!(currency in exchange_table))
                 return null;
             val *= exchange_table[currency];
@@ -320,8 +884,12 @@
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !estate_doc.costDate)
                 estate_purch_no_cost = true;
 
-            if (estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden)
-                estate_has_hidden_cost = true;
+            if (estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden && owning_date.length == 3) {
+                const owning_year = parseInt(owning_date[2]);
+                if (owning_year && owning_year + 5 >= parseInt(nacp_doc.step_0.declarationYear1))
+                    estate_has_hidden_cost = true;
+            }
+
 
             if (String(estate_doc.person) in (nacp_doc.step_2 || {}) && (estate_doc.dnt_costDate_hidden || estate_doc.dnt_costAssessment_hidden))
                 hidden_in_family = true;
@@ -396,10 +964,21 @@
             const corp_doc = nacp_doc.step_8[key];
             if (typeof(corp_doc) != 'object')
                 continue;
-            if (corp_doc.country != '1')
+            if (corp_doc.country != "" && typeof(corp_doc.country) != "undefined" && corp_doc.country != '1')
                 corprights_has_foreign = true;
             if (String(corp_doc.person) in (nacp_doc.step_2 || {}) && corp_doc.dnt_cost_hidden)
                 hidden_in_family = true;
+        }
+    }
+    if (nacp_doc.step_9) {
+        for (let key in nacp_doc.step_9) {
+            const bo_doc = nacp_doc.step_9[key];
+            if (typeof(bo_doc) != 'object')
+                continue;
+
+            if (bo_doc.country != "" && typeof(bo_doc.country) != "undefined" && bo_doc.country != '1')
+                has_bo_abroad = true;
+
         }
     }
     if (nacp_doc.step_11) {
@@ -417,6 +996,17 @@
                 total_presents += income_doc.sizeIncome;
             if (income_doc.dnt_objectType_encoded == 'prize')
                 total_prizes += income_doc.sizeIncome;
+
+            if (income_doc.dnt_objectType_encoded == 'other') {
+                const income_type = income_doc.otherObjectType.toLowerCase();
+
+                for (let prize_marker of ["вигра", "лотере", "мегалот", "суперлото", "призові"]) {
+                    if (income_type.indexOf(prize_marker) != -1) {
+                        total_prizes += income_doc.sizeIncome;
+                        break
+                    }
+                }
+            }
             total_income += income_doc.sizeIncome;
         }
     }
@@ -426,7 +1016,8 @@
             if (typeof(assets_doc) != 'object')
                 continue;
 
-            if (assets_doc.dnt_objectType_encoded == 'bank' && assets_doc.dnt_is_foreign)
+            if ((assets_doc.dnt_objectType_encoded == 'bank' ||
+                 assets_doc.dnt_objectType_encoded == 'credit_union') && assets_doc.dnt_is_foreign)
                 has_foreign_bank_acc = true;
 
             if (String(assets_doc.person) in (nacp_doc.step_2 || {}) && assets_doc.dnt_sizeAssets_hidden)
@@ -454,6 +1045,49 @@
 
             if (String(liability_doc.person) in (nacp_doc.step_2 || {}) && liability_doc.dnt_sizeObligation_hidden)
                 hidden_in_family = true;
+
+            let not_bank = true;
+            for (let code of ["emitent_ua_company_code", "emitent_eng_company_code"])
+                if (typeof(liability_doc[code]) !== "undefined" &&
+                    common_bank_codes.indexOf(liability_doc[code]) != -1) {
+                    not_bank = false;
+                    break
+                }
+
+            if (not_bank)
+                for (let name of ["emitent_ua_company_name", "emitent_ukr_company_name", "emitent_eng_company_name"])
+                    if (typeof(liability_doc[name]) !== "undefined") {
+                        let bank_name = liability_doc[name].toLowerCase();
+
+                        for (let name_chunk of common_bank_names)
+                            if (bank_name.indexOf(name_chunk) != -1) {
+                                not_bank = false;
+                                break
+                            }
+                    }
+
+            if (not_bank) {
+                if (liability_doc.dnt_objectType_encoded != "leasing" &&
+                    liability_doc.dnt_objectType_encoded != "pension" &&
+                    liability_doc.dnt_objectType_encoded != "other" &&
+                    liability_doc.dnt_objectType_encoded != "insurance")
+                    has_non_bank_liabilities = true;
+
+                if (liability_doc.dnt_objectType_encoded == "other") {
+                    const other_object_type = liability_doc.otherObjectType.toLowerCase();
+                    let skip = false;
+
+                    for (let exclude of ["лізи", "лизи", "пенсі", "пенси", "страхув", "страхов"]) {
+                        if (other_object_type.indexOf(exclude) != -1) {
+                            skip = true;
+                            break;
+                        }
+                    }
+
+                    if (!skip)
+                        has_non_bank_liabilities = true;
+                }
+            }
 
             if (liability_doc.sizeObligation === undefined)
                 continue;
@@ -499,6 +1133,31 @@
     house_no_land = has_house && !has_land;
     income_has_prizes = total_prizes > 0;
     loan_shark = lent_assets > lent_assets_threshold;
+    has_huge_prize = total_prizes >= huge_prize_threshold;
+
+    function find_extendedstatus3(obj) {
+        for (var i in obj) {
+            if (obj.hasOwnProperty(i)) {
+                if (i == "step_1" || i == "step_2") {
+                    continue;
+                }
+
+                if (typeof obj[i] === 'object') {
+                    var foundLabel = find_extendedstatus3(obj[i]);
+                    if (foundLabel) {
+                        return foundLabel;
+                    }
+                } else if (String(i).toLowerCase().indexOf("extendedstatus") > -1 ) {
+                    if (String(obj[i]) == "3") {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    family_member_did_not_provide_information = find_extendedstatus3(doc);
 
     emit(doc._id, [doc.doc_uuid, assets_to_income, income_presents_to_total, expenses_to_inc_and_assets,
                    liabilities_to_inc_and_assets, jar_of_cash, garage_wo_car, house_no_land, has_luxury_cars,
@@ -506,5 +1165,6 @@
                    corprights_has_foreign, has_foreign_bank_acc, income_has_prizes, loan_shark, jar_of_pocket_cash,
                    income_presents_to_total_50, hidden_in_family,
                    total_expenses, total_liabilities, total_cash, total_presents, has_aircraft_flag, 
-                   has_major_real_estate, has_foreign_real_estate]);
+                   has_major_real_estate, has_foreign_real_estate, family_member_did_not_provide_information,
+                   has_huge_prize, has_bo_abroad, has_non_bank_liabilities]);
 }
