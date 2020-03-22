@@ -466,12 +466,16 @@ class NacpDeclarationParser(object):
                     if not isinstance(member, dict):
                         continue
 
-                    resp["general"]["family"].append({
-                        "family_name": replace_apostrophes("{} {} {}".format(
+                    name = member.get("ukr_full_name", "")
+                    if not name:
+                        name = "{} {} {}".format(
                             title(member.get("lastname", "")),
                             title(member.get("firstname", "")),
                             title(member.get("middlename", "")),
-                        )),
+                        )
+
+                    resp["general"]["family"].append({
+                        "family_name": replace_apostrophes(name),
 
                         "relations": member.get("subjectRelation", "")
                     })

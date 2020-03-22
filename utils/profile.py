@@ -4,6 +4,7 @@ import json
 import importlib.util
 import os.path
 import sys
+import pandas
 
 from load import import_all
 from addview import load_source, add_function
@@ -66,23 +67,40 @@ def exporter(profile, db_config):
 
 
 def merger(profile):
-    merger_profile = profile['merger']
-    assert merger_profile['type'] == 'csv', 'Unsupported merger type'
+    TYPES_MAPPING = {"Int64Dtype": pandas.Int64Dtype}
 
-    logger.info('Executing merger...')
+    merger_profile = profile["merger"]
+    assert merger_profile["type"] == "csv", "Unsupported merger type"
+
+    logger.info("Executing merger...")
     # Load and exec Python modules containing the Pandas functions
     postprocess_funcs = []
-    if merger_profile.get('postprocess'):
-        logger.info('Loading Pandas post-processing functions.')
-        for i, pp_filename in enumerate(merger_profile['postprocess']):
-            logger.info('Loading: {}'.format(pp_filename))
-            spec = importlib.util.spec_from_file_location('postprocess_module_{}'.format(i), pp_filename)
+    if merger_profile.get("postprocess"):
+        logger.info("Loading Pandas post-processing functions.")
+        for i, pp_filename in enumerate(merger_profile["postprocess"]):
+            logger.info("Loading: {}".format(pp_filename))
+            spec = importlib.util.spec_from_file_location(
+                "postprocess_module_{}".format(i), pp_filename
+            )
             postprocess_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(postprocess_module)
             postprocess_funcs.append(postprocess_module.postprocess_func)
 
-    merge_csv(merger_profile['output'], merger_profile['inputs'], merger_profile['field'],
-              merger_profile.get('nan_replacements'), postprocess_funcs, merger_profile.get('only_years'))
+    type_overrides = {}
+    if merger_profile.get("type_overrides"):
+        for field, dtype in merger_profile["type_overrides"].items():
+            assert dtype in TYPES_MAPPING, "Allowed types are {}".format(", ".join(TYPES_MAPPING.keys()))
+            type_overrides[field] = TYPES_MAPPING[dtype]()
+
+    merge_csv(
+        merger_profile["output"],
+        merger_profile["inputs"],
+        merger_profile["field"],
+        merger_profile.get("nan_replacements"),
+        postprocess_funcs,
+        merger_profile.get("only_years"),
+        type_overrides
+    )
 
 
 def pump(profile, db_config, es_endpoint):
@@ -96,7 +114,7 @@ def pump(profile, db_config, es_endpoint):
         'doc_type': pump_profile['doc_type']
     }
     csv_to_elasticsearch(pump_profile['input'], pump_profile['state_file'], pump_profile['match_field'],
-                         pump_profile['container_field'], db_config, es_config)
+                         pump_profile['container_field'], db_config, es_config, pump_profile.get("filter_values"))
 
 
 if __name__ == '__main__':
