@@ -24,7 +24,7 @@
                         return violation_found;
                     }
                 } else if (String(i).toLowerCase() == "owningdate") {
-                	if (created_date - parse_date(obj[i]) >= 10 * 24 * 60 * 60 * 1000) {
+                	if (created_date - parse_date(obj[i]) > 10 * 24 * 60 * 60 * 1000) {
                 		return true;
                 	}
                 }
