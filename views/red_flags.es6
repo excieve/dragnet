@@ -419,17 +419,17 @@
         'addition_firstname_extendedstatus',
         'addition_lastname_extendedstatus',
         'amount_extendedstatus',
-        'assetsCurrency_extendedstatus',
+        'assetscurrency_extendedstatus',
         'brand_extendedstatus',
         'cost_extendedstatus',
         'cost_percent_extendedstatus',
-        'costAssessment_extendedstatus',
-        'costDate_extendedstatus',
-        'costDateOrigin_extendedstatus',
-        'costDateUse_extendedstatus',
+        'costassessment_extendedstatus',
+        'costdate_extendedstatus',
+        'costdateorigin_extendedstatus',
+        'costdateuse_extendedstatus',
         'country_extendedstatus',
-        'dateUse_extendedstatus',
-        'descriptionObject_extendedstatus',
+        'dateuse_extendedstatus',
+        'descriptionobject_extendedstatus',
         'emitent_eng_company_name_extendedstatus',
         'emitent_eng_fullname_extendedstatus',
         'emitent_extendedstatus',
@@ -438,24 +438,24 @@
         'emitent_ukr_company_name_extendedstatus',
         'emitent_ukr_fullname_extendedstatus',
         'en_name_extendedstatus',
-        'graduationYear_extendedstatus',
-        'incomeSource_extendedstatus',
-        'manufacturerName_extendedstatus',
+        'graduationyear_extendedstatus',
+        'incomesource_extendedstatus',
+        'manufacturername_extendedstatus',
         'model_extendedstatus',
         'name_extendedstatus',
-        'objectType_extendedstatus',
+        'objecttype_extendedstatus',
         'organization_eng_company_name_extendedstatus',
         'organization_ua_company_name_extendedstatus',
         'organization_ukr_company_name_extendedstatus',
-        'otherObjectType_extendedstatus',
-        'owningDate_extendedstatus',
-        'propertyDescr_extendedstatus',
-        'sizeAssets_extendedstatus',
-        'sizeIncome_extendedstatus',
+        'otherobjecttype_extendedstatus',
+        'owningdate_extendedstatus',
+        'propertydescr_extendedstatus',
+        'sizeassets_extendedstatus',
+        'sizeincome_extendedstatus',
         'source_eng_company_name_extendedstatus',
         'source_ua_company_name_extendedstatus',
         'source_ukr_company_name_extendedstatus',
-        'totalArea_extendedstatus',
+        'totalarea_extendedstatus',
         'trademark_extendedstatus'
     ];
 
@@ -901,12 +901,10 @@
 
             if (typeof(estate_doc) != 'object')
                 continue;
-            if (!isOwned(estate_doc))
-                continue;
 
             switch (estate_doc.dnt_objectType_encoded) {
                 case 'apt':
-                case 'office':
+                case 'room':
                     has_real_estate = true
                     break;
                 case 'garage':
@@ -921,13 +919,20 @@
                     has_land = true;
                     break;
                 case 'other':
-                    if (estate_doc.otherObjectType.toLowerCase().indexOf("будинок") != -1)
+                    if (estate_doc.otherObjectType.toLowerCase().indexOf("будин") != -1 || estate_doc.otherObjectType.toLowerCase().indexOf("квартир") != -1)
                         has_real_estate = true;
             }
 
+            if (has_real_estate && String(estate_doc.country) != "1")
+                has_foreign_real_estate = true
+
+            if (!isOwned(estate_doc))
+                continue;
+
             const owning_date = estate_doc.owningDate.split('.');
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !estate_doc.costDate)
-                estate_purch_no_cost = true;
+                if (String(estate_doc.person) == "1" || String(estate_doc.person) in (nacp_doc.step_2 || {}))
+                    estate_purch_no_cost = true;
 
             if (estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden && owning_date.length == 3) {
                 const owning_year = parseInt(owning_date[2]);
@@ -935,15 +940,11 @@
                     estate_has_hidden_cost = true;
             }
 
-
             if (String(estate_doc.person) in (nacp_doc.step_2 || {}) && (estate_doc.dnt_costDate_hidden || estate_doc.dnt_costAssessment_hidden))
                 hidden_in_family = true;
 
             if (has_real_estate && estate_doc.totalArea > 300.)
                 has_major_real_estate = true
-
-            if (has_real_estate && String(estate_doc.country) != "1")
-                has_foreign_real_estate = true
         }
     }
     if (nacp_doc.step_5) {
@@ -961,19 +962,21 @@
             const vehicle_doc = nacp_doc.step_6[key];
             if (typeof(vehicle_doc) != 'object')
                 continue;
+
+            if (vehicle_doc.dnt_objectType_encoded == "air_transport")
+                has_aircraft_flag = true;
+
             if (!isOwned(vehicle_doc))
                 continue;
             has_vehicle = true;
 
             const owning_date = vehicle_doc.owningDate.split('.');
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !vehicle_doc.costDate)
-                vehicle_purch_no_cost = true;
+                if (String(vehicle_doc.person) == "1" || String(vehicle_doc.person) in (nacp_doc.step_2 || {}))
+                    vehicle_purch_no_cost = true;
 
             if (String(vehicle_doc.person) in (nacp_doc.step_2 || {}) && (vehicle_doc.dnt_costDate_hidden || vehicle_doc.dnt_graduationYear_hidden))
                 hidden_in_family = true;
-
-            if (vehicle_doc.dnt_objectType_encoded == "air_transport")
-                has_aircraft_flag = true;
 
             let full_name = '';
             if (vehicle_doc.brand)
@@ -1128,7 +1131,7 @@
                     const other_object_type = liability_doc.otherObjectType.toLowerCase();
                     let skip = false;
 
-                    for (let exclude of ["лізи", "лизи", "пенсі", "пенси", "страхув", "страхов"]) {
+                    for (let exclude of ["лізи", "лизи", "лізі", "пенсі", "пенси", "страхув", "страхов"]) {
                         if (other_object_type.indexOf(exclude) != -1) {
                             skip = true;
                             break;
@@ -1147,7 +1150,10 @@
             if (val == null)
                 continue;
 
-            total_liabilities += val;
+            if (liability_doc.guarantor_realty === undefined ||
+                    (liability_doc.guarantor_realty.constructor === Array &&
+                     liability_doc.guarantor_realty.length === 0))
+                total_liabilities += val;
         }
     }
     if (nacp_doc.step_14) {
