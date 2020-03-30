@@ -67,7 +67,7 @@ def exporter(profile, db_config):
 
 
 def merger(profile):
-    TYPES_MAPPING = {"Int64Dtype": pandas.Int64Dtype}
+    TYPES_MAPPING = {"Int64Dtype": pandas.Int64Dtype, "bool": "boolean"}
 
     merger_profile = profile["merger"]
     assert merger_profile["type"] == "csv", "Unsupported merger type"
@@ -90,7 +90,10 @@ def merger(profile):
     if merger_profile.get("type_overrides"):
         for field, dtype in merger_profile["type_overrides"].items():
             assert dtype in TYPES_MAPPING, "Allowed types are {}".format(", ".join(TYPES_MAPPING.keys()))
-            type_overrides[field] = TYPES_MAPPING[dtype]()
+            if callable(TYPES_MAPPING[dtype]):
+                type_overrides[field] = TYPES_MAPPING[dtype]()
+            else:
+                type_overrides[field] = TYPES_MAPPING[dtype]
 
     merge_csv(
         merger_profile["output"],
