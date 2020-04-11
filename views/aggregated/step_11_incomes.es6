@@ -22,9 +22,20 @@
             continue;
         }
 
-        if (income_doc.person == '1')
+        let person = "1";
+        if (typeof(income_doc.person) == 'string') {
+            person = income_doc.person
+        } else {
+            for (let key in income_doc.person) {
+                person = key;
+                break
+            }
+        }
+
+
+        if (person == '1')
             declarant_income += income_doc.sizeIncome;
-        else if (String(income_doc.person) in (nacp_doc.step_2 || {}))
+        else if (String(person) in (nacp_doc.step_2 || {}))
             family_income += income_doc.sizeIncome;
         if (income_doc.dnt_objectType_encoded == 'prize')
             total_prizes += income_doc.sizeIncome;

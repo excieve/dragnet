@@ -98,3 +98,4 @@ node_modules/
 data/export/
 data/import/
 .DS_Store
+debug/

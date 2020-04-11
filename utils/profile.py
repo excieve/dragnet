@@ -67,7 +67,7 @@ def exporter(profile, db_config):
 
 
 def merger(profile):
-    TYPES_MAPPING = {"Int64Dtype": pandas.Int64Dtype, "bool": "boolean"}
+    TYPES_MAPPING = {"Int64Dtype": pandas.Int64Dtype, "bool": "boolean", "float64": "float64"}
 
     merger_profile = profile["merger"]
     assert merger_profile["type"] == "csv", "Unsupported merger type"

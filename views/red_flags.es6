@@ -36,6 +36,8 @@
         "дельтабанк",
         "укрсоцбанк",
         "дельта банк",
+        "альфа банк",
+        "альфа-банк",
     ];
 
     const common_bank_codes = [
@@ -456,7 +458,12 @@
         'source_ua_company_name_extendedstatus',
         'source_ukr_company_name_extendedstatus',
         'totalarea_extendedstatus',
-        'trademark_extendedstatus'
+        'trademark_extendedstatus',
+        'costdate_extendedstatus',
+        'owningdate_extendedstatus',
+        'totalarea_extendedstatus',
+        'percent-ownership_extendedstatus',
+        'costassessment_extendedstatus',
     ];
 
     // TODO: perhaps move this to a separate stored function with rates by year
@@ -919,32 +926,33 @@
                     has_land = true;
                     break;
                 case 'other':
-                    if (estate_doc.otherObjectType.toLowerCase().indexOf("будин") != -1 || estate_doc.otherObjectType.toLowerCase().indexOf("квартир") != -1)
+                    if (estate_doc.otherObjectType.toLowerCase().indexOf("квартир") != -1)
                         has_real_estate = true;
             }
 
-            if (has_real_estate && String(estate_doc.country) != "1")
+            if (String(estate_doc.country) != "1")
                 has_foreign_real_estate = true
+
+            if (has_real_estate && estate_doc.totalArea > 300.)
+                has_major_real_estate = true
 
             if (!isOwned(estate_doc))
                 continue;
 
             const owning_date = estate_doc.owningDate.split('.');
-            if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && !estate_doc.costDate)
+            if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden)
                 if (String(estate_doc.person) == "1" || String(estate_doc.person) in (nacp_doc.step_2 || {}))
                     estate_purch_no_cost = true;
 
             if (estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden && owning_date.length == 3) {
                 const owning_year = parseInt(owning_date[2]);
                 if (owning_year && owning_year + 5 >= parseInt(nacp_doc.step_0.declarationYear1))
-                    estate_has_hidden_cost = true;
+                    if (String(estate_doc.person) == "1" || String(estate_doc.person) in (nacp_doc.step_2 || {}))
+                        estate_has_hidden_cost = true;
             }
 
             if (String(estate_doc.person) in (nacp_doc.step_2 || {}) && (estate_doc.dnt_costDate_hidden || estate_doc.dnt_costAssessment_hidden))
                 hidden_in_family = true;
-
-            if (has_real_estate && estate_doc.totalArea > 300.)
-                has_major_real_estate = true
         }
     }
     if (nacp_doc.step_5) {
@@ -1035,7 +1043,17 @@
             if (typeof(income_doc) != 'object')
                 continue;
 
-            if (String(income_doc.person) in (nacp_doc.step_2 || {}) && income_doc.dnt_sizeIncome_hidden)
+            let person = "1";
+            if (typeof(income_doc.person) == 'string') {
+                person = income_doc.person
+            } else {
+                for (let key in income_doc.person) {
+                    person = key;
+                    break
+                }
+            }
+
+            if (String(person) in (nacp_doc.step_2 || {}) && income_doc.dnt_sizeIncome_hidden)
                 hidden_in_family = true;
 
             if (income_doc.sizeIncome === undefined)
