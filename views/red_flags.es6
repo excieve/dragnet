@@ -868,14 +868,14 @@
         has_land = false;
 
     // TODO: preferably put these into separate common functions of their own
-    let isOwned = (subdoc) => {
+    let isOwned = (subdoc, family) => {
         if (!subdoc.rights)
             return false;
         for (let right_key in subdoc.rights) {
             const right = subdoc.rights[right_key];
             if (!right)
                 continue;
-            if (ownership_types.indexOf(right.dnt_ownershipType_encoded) != -1) {
+            if (ownership_types.indexOf(right.dnt_ownershipType_encoded) != -1 && (String(right_key) == "1" || String(right_key) in family)) {
                 return true;
             }
         }
@@ -930,14 +930,14 @@
                         has_real_estate = true;
             }
 
-            if (String(estate_doc.country) != "1")
-                has_foreign_real_estate = true
-
             if (has_real_estate && estate_doc.totalArea > 300.)
                 has_major_real_estate = true
 
-            if (!isOwned(estate_doc))
+            if (!isOwned(estate_doc, (nacp_doc.step_2 || {})))
                 continue;
+
+            if (String(estate_doc.country) != "1")
+                has_foreign_real_estate = true
 
             const owning_date = estate_doc.owningDate.split('.');
             if (owning_date.length == 3 && owning_date[2] == nacp_doc.step_0.declarationYear1 && estate_doc.dnt_costDate_hidden && estate_doc.dnt_costAssessment_hidden)
@@ -974,8 +974,9 @@
             if (vehicle_doc.dnt_objectType_encoded == "air_transport")
                 has_aircraft_flag = true;
 
-            if (!isOwned(vehicle_doc))
+            if (!isOwned(vehicle_doc, (nacp_doc.step_2 || {})))
                 continue;
+
             has_vehicle = true;
 
             const owning_date = vehicle_doc.owningDate.split('.');
