@@ -397,7 +397,7 @@ class NacpDeclarationParser(object):
         resp["general"] = {
             "last_name": replace_apostrophes(title(data["step_1"]["lastname"])),
             "name": replace_apostrophes(title(data["step_1"]["firstname"])),
-            "patronymic": replace_apostrophes(title(data["step_1"]["middlename"])),
+            "patronymic": replace_apostrophes(title(data["step_1"].get("middlename", ""))),
             "full_name": replace_apostrophes("{} {} {}".format(
                 title(data["step_1"]["lastname"]),
                 title(data["step_1"]["firstname"]),
