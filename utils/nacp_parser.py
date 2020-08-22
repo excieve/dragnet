@@ -401,7 +401,7 @@ class NacpDeclarationParser(object):
             "full_name": replace_apostrophes("{} {} {}".format(
                 title(data["step_1"]["lastname"]),
                 title(data["step_1"]["firstname"]),
-                title(data["step_1"]["middlename"]),
+                title(data["step_1"].get("middlename", "")),
             )),
             "post": {
                 "post": replace_apostrophes(data["step_1"].get("workPost", "")),
