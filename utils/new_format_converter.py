@@ -69,6 +69,7 @@ class DeclarationConverter:
         rights_dict = {}
 
         for r in rights:
+            # невідомо, не застосовується та член сім’ї не надав інформацію
             if r.get("percent-ownership_extendedstatus") in ["1", "2"] and r.get(
                 "percent-ownership"
             ) in [None, "[Не застосовується]", "", "[Не відомо]"]:
