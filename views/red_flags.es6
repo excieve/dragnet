@@ -812,6 +812,7 @@
         'фольксваген фидеон', 'фольксваген фідеон', 'форд мустанг', 'хонда с660', 'хюндаи велостер', 'хюндаі велостер',
         'хюндай велостер', 'ягуар'
     ];
+    const parking_spot = /(((м[і|е]с[т|ц])|(стоянк)|(схов)|(хранен)|(зберіг)|(парк))(.*)((авто)|(трансп)|(машин)))|(((авто)|(трансп)|(машин))(.*)((м[і|е]с[т|ц])|(стоянк)|(схов)|(хранен)|(зберіг)|(парк)))|(гараж)|(парк[у|о]в)|(парк[і|и]нг)|(парко(.*)м[і|е]с[т|ц])/;
     const present_types = ['presentnomoney', 'presentmoney', 'charity', 'prize'],
           ownership_types = ['ownproperty', 'comproperty'];
     // Thresholds
@@ -928,6 +929,8 @@
                 case 'other':
                     if (estate_doc.otherObjectType.toLowerCase().indexOf("квартир") != -1)
                         has_real_estate = true;
+                    // if (estate_doc.otherObjectType.toLowerCase().search(parking_spot) != -1)
+                    //     has_garage = true;
             }
 
             if (has_real_estate && estate_doc.totalArea > 300.)
