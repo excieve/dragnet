@@ -69,6 +69,9 @@ class DeclarationConverter:
         rights_dict = {}
 
         for r in rights:
+            # Rare case of strange shit in rights
+            if r in ([[]], [], None):
+                continue
             # невідомо, не застосовується та член сім’ї не надав інформацію
             if r.get("percent-ownership_extendedstatus") in ["1", "2"] and r.get(
                 "percent-ownership"
@@ -128,6 +131,7 @@ class DeclarationConverter:
         for step in range(9, 18):
             if not dt.get(f"step_{step}"):
                 dt[f"step_{step}"] = {"isNotApplicable": 1}
+
         for k, v in dt.items():
             if isinstance(v, dict):
                 subk = list(v.keys())
@@ -164,6 +168,7 @@ class DeclarationConverter:
                                 f"Expecting an array for the {k}"
                             )
                         else:
+                            skipped_values = 0
                             subval = LastUpdatedOrderedDict()
 
                             for i, step_data in enumerate(v):
@@ -178,7 +183,10 @@ class DeclarationConverter:
                                 # Check for the form of changes
 
                                 if k == "step_2" and self._data.get("type") != 2:
-                                    subval[str(step_data["id"])] = step_data
+                                    if isinstance(step_data, dict):
+                                        subval[str(step_data["id"])] = step_data
+                                    else:
+                                        skipped_values += 1
                                 else:
                                     subval[
                                         self.get_next_iteration(
@@ -188,7 +196,7 @@ class DeclarationConverter:
 
                             dt[k] = subval
 
-                            if len(subval.values()) != len(v):
+                            if len(subval.values()) + skipped_values != len(v):
                                 self.raise_parsing_exception(
                                     f"Conversion gave {len(subval.values())} elements instead of {len(v)}"
                                 )

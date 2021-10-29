@@ -134,6 +134,14 @@ class DeclarationComparator:
         ignore_keys=None,
         compare_nested=None,
     ):
+        if isinstance(old_part, (str, bool)) and isinstance(new_part, (str, bool)):
+            self.log_difference(
+                section,
+                f"{key_prefix}",
+                f"Rare case of API brainfart: cannot compare {old_part} and {new_part}",
+            )
+            return False
+
         # Let's start optimistic
         the_same = True
         if ignore_keys is None:
@@ -157,6 +165,11 @@ class DeclarationComparator:
                         f"{key_prefix}{old_k}",
                         f"Cannot find {old_k} in the new document",
                     )
+
+                # Rare case when old declarations has messed up rights
+                if old_k == "rights" and isinstance(old_v, list):
+                    old_v = self._converter.convert_rights_block(deepcopy(old_v))
+
                 the_same = the_same and self.compare_involved_steps(
                     deepcopy(old_v),
                     deepcopy(new_part[old_k]),
@@ -249,6 +262,11 @@ class DeclarationComparator:
             )
             the_same = False
 
+        if not old_part:
+            old_part = {
+                "empty": "У суб'єкта декларування відсутні об'єкти для декларування в цьому розділі."
+            }
+
         parts_to_resolve = []
         for new_k in new_part.keys():
             if new_k in old_part:
@@ -320,7 +338,6 @@ class DeclarationComparator:
         for step in range(0, 18):
             if step not in limit_to_steps:
                 continue
-
             if step == 0:
                 self.compare_step0()
             elif step == 1:
