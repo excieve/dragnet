@@ -27,26 +27,57 @@
         }
 
         const estate_key = `${estate_doc.ua_cityType}.${estate_doc.totalArea}.${estate_doc.dnt_objectType_encoded}`;
-        if (estate_doc.person == '1') {
-            if (estate_doc.dnt_objectType_encoded == 'land')
-                declarant_land += estate_doc.totalArea;
-            else
-                declarant_other += estate_doc.totalArea;
-        } else if (String(estate_doc.person) in (nacp_doc.step_2 || {})) {
-            if (!seen_family_estates.has(estate_key)) {
+        if (estate_doc.person) {
+            if (estate_doc.person == '1') {
                 if (estate_doc.dnt_objectType_encoded == 'land')
-                    family_land += estate_doc.totalArea;
+                    declarant_land += estate_doc.totalArea;
                 else
-                    family_other += estate_doc.totalArea;
-                seen_family_estates.add(estate_key);
+                    declarant_other += estate_doc.totalArea;
+            } else if (String(estate_doc.person) in (nacp_doc.step_2 || {})) {
+                if (!seen_family_estates.has(estate_key)) {
+                    if (estate_doc.dnt_objectType_encoded == 'land')
+                        family_land += estate_doc.totalArea;
+                    else
+                        family_other += estate_doc.totalArea;
+                    seen_family_estates.add(estate_key);
+                }
             }
-        }
 
-        if (!seen_all_estates.has(estate_key)) {
-            if (estate_doc.dnt_objectType_encoded == 'land')
-                total_land += estate_doc.totalArea;
-            else
-                total_other += estate_doc.totalArea;
+            if (!seen_all_estates.has(estate_key)) {
+                if (estate_doc.dnt_objectType_encoded == 'land')
+                    total_land += estate_doc.totalArea;
+                else
+                    total_other += estate_doc.totalArea;
+                seen_all_estates.add(estate_key);
+            }
+
+        } else {
+            for (let rights in estate_doc.rights || {}){
+                let right_doc = estate_doc.rights[rights];
+                let person = right_doc.rightBelongs;
+                let percent = String(right_doc["percent-ownership"] || "100").replace(",", ".") / 100;
+
+                if (person != "j" && right_doc.dnt_ownershipType_encoded != "other") {
+                    if (person == '1') {
+                        if (estate_doc.dnt_objectType_encoded == 'land')
+                            declarant_land += estate_doc.totalArea * percent;
+                        else
+                            declarant_other += estate_doc.totalArea * percent;
+                    } else if (String(person) in (nacp_doc.step_2 || {})) {
+                        if (estate_doc.dnt_objectType_encoded == 'land')
+                            family_land += estate_doc.totalArea * percent;
+                        else {
+                            family_other += estate_doc.totalArea * percent;
+                        }
+                    }
+
+                    if (estate_doc.dnt_objectType_encoded == 'land')
+                        total_land += estate_doc.totalArea * percent;
+                    else
+                        total_other += estate_doc.totalArea * percent;
+                }
+            }
+            seen_family_estates.add(estate_key);
             seen_all_estates.add(estate_key);
         }
     }

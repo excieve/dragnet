@@ -11,14 +11,30 @@
         has_hidden = false,
         seen_family_vehicles = new Set(),
         seen_all_vehicles = new Set();
+    const not_known_flags = [
+        "[не застосовується]",
+        "[член сім'ї не надав інформацію]",
+        "[не відомо]"
+    ];
+
     for (let key in nacp_doc.step_6) {
         const vehicle_doc = nacp_doc.step_6[key];
         if (typeof(vehicle_doc) != 'object')
             continue;
         if (vehicle_doc.costDate === undefined)
             continue;
+
+        if (vehicle_doc.brand && not_known_flags.includes(vehicle_doc.brand.toLowerCase()))
+            vehicle_doc.brand = ""
+
+        if (vehicle_doc.model && not_known_flags.includes(vehicle_doc.model.toLowerCase()))
+            vehicle_doc.model = ""
+
         if (!vehicle_doc.brand && !vehicle_doc.model)
             has_hidden = true;
+
+        vehicle_doc.brand = vehicle_doc.brand.trim()
+        vehicle_doc.model = vehicle_doc.model.trim()
 
         const vehicle_key = `${vehicle_doc.brand}|${vehicle_doc.model}|${vehicle_doc.graduationYear}`
             .toLowerCase()

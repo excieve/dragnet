@@ -75,7 +75,9 @@ EXPENSE_SPEC_MAPPING = {
 
 PROPERTY_TYPE_MAPPING = {
     'власність': 'ownproperty',
+    "Право власності третьої особи, але наявні ознаки відповідно до частини 3 статті 46 ЗУ «Про запобігання корупції»": "beneficiary",
     'спільна власність': 'comproperty',
+    'Спільна сумісна власність': 'comcomproperty',
     'власником є третя особа': 'thirdparty',
     'оренда': 'leasing',
     'інше': 'other'

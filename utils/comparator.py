@@ -122,6 +122,12 @@ class DeclarationComparator:
             # For the cases of apostrophes in the names and 
             # extra spaces (god oh why)
             return self.normalize_str(old) != self.normalize_str(new)
+        if isinstance(old, dict) and isinstance(new, dict):
+            for k in old:
+                if self.compare_values(k, old, new):
+                    return True
+
+            return False
         else:
             return old != new
 

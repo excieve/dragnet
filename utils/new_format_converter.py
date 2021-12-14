@@ -65,6 +65,14 @@ class DeclarationConverter:
             f"Declaration #{self._id} ({self._document}) has a parsing error {error}"
         )
 
+    def convert_guarantor_data(self, guarantors):
+        res = {}
+
+        for guarantor in guarantors:
+            res[guarantor["guarantor"]] = guarantor
+
+        return res
+
     def convert_rights_block(self, rights):
         rights_dict = {}
 
@@ -119,6 +127,8 @@ class DeclarationConverter:
 
             for person_block in section["person_who_care"]:
                 res[person_block["person"]] = person_block
+                if "person_id" in person_block:
+                    person_block["person_id"] = str(person_block["person_id"])
 
             section["person"] = res
 
@@ -174,6 +184,8 @@ class DeclarationConverter:
                             for i, step_data in enumerate(v):
                                 step_data = self.apply_boolean_fix(step_data)
                                 step_data = self.rename_person_dict(step_data)
+                                if "guarantor" in step_data:
+                                    step_data["guarantor"] = self.convert_guarantor_data(step_data["guarantor"])
 
                                 if "rights" in step_data:
                                     step_data["rights"] = self.convert_rights_block(

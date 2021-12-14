@@ -17,12 +17,17 @@ logger = logging.getLogger('dragnet.profile')
 
 def loader(profile, db_config, concurrency, chunks_per_process):
     loader_profile = profile['loader']
-    assert loader_profile['type'] == 'nacp', 'Unsupported loader type'
+    assert loader_profile['type'] in ('nacp', 'nacp_new_format'), 'Unsupported loader type'
 
     logger.info('Executing loader...')
     import_all(
-        loader_profile['input_dir'], loader_profile['corrected_file'],
-        db_config, concurrency, chunks_per_process, loader_profile['state_file']
+        docs_dir=loader_profile['input_dir'],
+        corrected_file=loader_profile.get("corrected_file"),
+        db_config=db_config, 
+        concurrency=concurrency, 
+        chunks_per_process=chunks_per_process,
+        state_filename=loader_profile['state_file'],
+        parser_type=loader_profile['type']
     )
 
 
