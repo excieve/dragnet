@@ -1,8 +1,8 @@
-FROM apache/couchdb:2
+FROM apache/couchdb:2.3
 # Clean original build artefacts and compile couch-chakra
 RUN rm -rf /etc/apt/sources.list.d/* &&\
     echo 'deb http://ftp.debian.org/debian buster-backports main' >> /etc/apt/sources.list
-RUN apt-get update -y -qq && apt-get install -y -t buster-backports clang-3.8 cmake libunwind8 libunwind8-dev unzip libicu-dev
+RUN apt-get update -y -qq && apt-get install -y clang-3.8 cmake libunwind8 libunwind8-dev unzip libicu-dev
 WORKDIR /usr/src
 RUN curl -fSL https://github.com/Microsoft/ChakraCore/archive/cb7817bda7e4b265e7a7364641123e20204facfd.zip -o ChakraCore.zip &&\
     unzip ChakraCore.zip &&\
